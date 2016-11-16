@@ -20,6 +20,6 @@ sudo pip3 install Django==1.10.3 requests==2.12.0 beautifulsoup4==4.5.1 lxml==3.
 Server setup ([source](https://www.linode.com/docs/websites/nginx/use-uwsgi-to-deploy-Python-apps-with-nginx-on-ubuntu-12-04)):
 
 ```
-sudo apt-get install nginx-full uwsgi uwsgi-plugin-python
+sudo apt-get install nginx-full uwsgi uwsgi-plugin-python3
 ```
 
