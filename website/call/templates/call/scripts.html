@@ -18,18 +18,20 @@
         <h1 id="phone-numbers">Phone numbers</h1>
         <ul>
             {% for critter in senators %}
-                <li> Sen. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}): <i>phone number not found</i></li>
+                <li> Sen. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}): ({{critter.dc_phone|slice:":3"}}) {{critter.dc_phone|slice:"3:6"}}-{{critter.dc_phone|slice:"6:"}}</li>
             {% endfor %}
             {% for critter in representatives %}
-                <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}-{{critter.district}}): <i>phone number not found</i></li>
+                <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}-{{critter.district}}): ({{critter.dc_phone|slice:":3"}}) {{critter.dc_phone|slice:"3:6"}}-{{critter.dc_phone|slice:"6:"}}</li>
             {% endfor %}
             {% for critter in global_senators %}
-                <li> Sen. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}): <i>phone number not found</i></li>
+                <li> Sen. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}): ({{critter.dc_phone|slice:":3"}}) {{critter.dc_phone|slice:"3:6"}}-{{critter.dc_phone|slice:"6:"}}</li>
             {% endfor %}
             {% for critter in global_representatives %}
-                <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}-{{critter.district}}): <i>phone number not found</i></li>
+                <li> Rep. {{critter.rep.name}} ({{critter.rep.party|slice:":1"}}-{{critter.rep.state}}-{{critter.rep.district}}): ({{critter.rep.dc_phone|slice:":3"}}) {{critter.rep.dc_phone|slice:"3:6"}}-{{critter.rep.dc_phone|slice:"6:"}}</li>
             {% endfor %}
         </ul>
+
+        <!-- TODO have the view load the scripts from template files (randomly shuffled) and pre-substitute the variables -->
 
         {% for critter in senators %}
             <h1 id="script-for-{{critter.name|slugify}}">Script for {{critter.name}}</h1>
@@ -40,9 +42,13 @@
 
         {% for critter in representatives %}
             <h1 id="script-for-{{critter.name|slugify}}">Script for {{critter.name}}</h1>
-            <p>Hello, this is {{name}} and I'm calling from {{city}}. I'm calling to ask when my representative will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
-            <p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
-            <p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
+            {% if critter.custom_script %}
+                {{critter.custom_script|safe}}
+            {% else %}
+                <p>Hello, this is {{name}} and I'm calling from {{city}}. I'm calling to ask when my representative will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
+                <p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
+                <p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
+            {% endif %}
         {% endfor %}
 
         {% for critter in global_senators %}
@@ -53,7 +59,7 @@
         {% endfor %}
 
         {% for critter in global_representatives %}
-            <h1 id="script-for-{{critter.name|slugify}}">Script for {{critter.name}}</h1>
+            <h1 id="script-for-{{critter.rep.name|slugify}}">Script for {{critter.rep.name}}</h1>
             <p>Hello, this is {{name}} and I'm calling from {{state}}. I'm calling to ask when my representative will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
             <p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
             <p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>

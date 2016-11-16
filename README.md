@@ -2,14 +2,24 @@ This is a website dedicated to helping US citizens call their Congressional repr
 
 ## HACKING
 
-Installation:
+OSX installation:
 
 ```
-brew install python3
-pip3 install Django
-pip3 install requests
-pip3 install beautifulsoup4
-brew install libxml2
+brew install python3 libxml2
+pip3 install Django==1.10.3 requests==2.12.0 beautifulsoup4==4.5.1
 pip3 install --global-option=build_ext --global-option=-L/usr/local/opt/libxml2/lib --global-option=build_ext --global-option=-I/usr/local/opt/libxml2/include/libxml2 lxml
+```
+
+Linux installation:
+
+```
+sudo apt-get install python3 python3-pip libxml2-dev libxslt-dev lib32z1-dev
+sudo pip3 install Django==1.10.3 requests==2.12.0 beautifulsoup4==4.5.1 lxml==3.6.4
+```
+
+Server setup ([source](https://www.linode.com/docs/websites/nginx/use-uwsgi-to-deploy-Python-apps-with-nginx-on-ubuntu-12-04)):
+
+```
+sudo apt-get install nginx-full uwsgi uwsgi-plugin-python
 ```
 
