@@ -70,35 +70,28 @@ def zip_code_city_state(zip):
 
 ################################################################################
 
-Name = namedtuple('Name', ['first', 'last', 'suffix'])
-
 def parse_comma_name(str):
     components = [s.strip() for s in str.split(',', 2)]
     if len(components) == 3:
         last, first, suffix = components
+        full = '%s %s %s' % (first, last, suffix)
     else:
         last, first = components
-        suffix      = None
-    return Name(first, last, suffix)
-
-def pretty_name(name):
-    if name.suffix:
-        return '%s %s %s' % name
-    else:
-        return '%s %s' % (name.first, name.last)
+        full = '%s %s' % (first, last)
+    return (full, last)
 
 ################################################################################
 
 Representative = namedtuple('Representative',
-                            ['name', 'name_parts',
+                            ['name', 'last_name',
                              'party', 'state', 'district',
                              'dc_phone', 'local_phones',
                              'custom_script'])
 
-ExtraRepInfo = namedtuple('ExtraRepInfo', ['name_parts', 'dc_phone'])
+ExtraRepInfo = namedtuple('ExtraRepInfo', ['last_name', 'dc_phone'])
 
 def add_extra_info(rep, eri):
-    return rep._replace(name_parts = eri.name_parts, dc_phone = eri.dc_phone)
+    return rep._replace(last_name = eri.last_name, dc_phone = eri.dc_phone)
 
 DIGITS_RE = re.compile(r'[0-9]+')
 
@@ -120,7 +113,7 @@ def get_representative_extra_info():
         else:
             continue
         
-        info[(state, district)] = ExtraRepInfo(name_parts = parse_comma_name(name),
+        info[(state, district)] = ExtraRepInfo(last_name = parse_comma_name(name)[1],
                                                dc_phone   = '202' + phone.replace('-',''))
     return info
 
@@ -141,7 +134,7 @@ def find_representative_for_zip(zip):
         
         return [Representative(
             name          = name.string.strip(),
-            name_parts    = None,
+            last_name     = None,
             party         = name.find_next_sibling(string=True).strip(),
             state         = STATES[state],
             district      = int(district) if district else 0,
@@ -157,7 +150,7 @@ def find_representative_for_zip(zip):
             
             return Representative(
                 name          = name.string.strip(),
-                name_parts    = None,
+                last_name     = None,
                 party         = party.strip(),
                 state         = STATES[state],
                 district      = int(district),
@@ -176,7 +169,7 @@ def get_representatives(zip):
 ################################################################################
 
 Senator = namedtuple('Senator',
-                     ['name', 'name_parts',
+                     ['name', 'last_name',
                       'party', 'state', 'class_',
                       'dc_phone', 'local_phones',
                       'custom_script'])
@@ -200,15 +193,15 @@ def get_senators(state):
     for row in html.find_all('table')[1].find_all('tr'):
         if row_index == 0:
             person, class_str = row.find_all('td')
-            name              = person.a
-            name_parts        = parse_comma_name(name.text.strip())
-            party_char, state = SENATOR_AFFILIATION_RE.search(name.find_next_sibling(string=True)).groups()
+            name_link         = person.a
+            name, last_name   = parse_comma_name(name_link.text.strip())
+            party_char, state = SENATOR_AFFILIATION_RE.search(name_link.find_next_sibling(string=True)).groups()
             class_            = len(SENATOR_CLASS_RE.search(class_str.text).group(1))
             
             
             cur_senator = Senator(
-                name          = pretty_name(name_parts),
-                name_parts    = name_parts,
+                name          = name,
+                last_name     = last_name,
                 party         = PARTY_CHARS.get(party_char, party_char),
                 state         = state,
                 class_        = class_,
