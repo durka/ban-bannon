@@ -55,9 +55,48 @@ STATES = { 'Alabama':        'AL',
            'Wisconsin':      'WI',
            'Wyoming':        'WY' }
 
+################################################################################
+    
+def url_soup(url):
+    return BeautifulSoup(requests.get(url, headers={'User-Agent': 'Not Mozilla'}).text, 'lxml')
+
+################################################################################
+
+CITY_STATE_RE = re.compile(r'(.+) ([A-Z][A-Z])')
+
+def zip_code_city_state(zip):
+    html = url_soup('https://tools.usps.com/go/ZipLookupResultsAction!input.action?resultMode=2&postalCode=%s' % zip)
+    city_str = html.find(id='result-cities').find(class_='std-address').string
+    city, state = CITY_STATE_RE.fullmatch(city_str).groups()
+    return (city.title(), state)
+
+################################################################################
 
 Representative = namedtuple('Representative',
                             ['name', 'party', 'state', 'district', 'dc_phone'])
+
+DIGITS_RE = re.compile(r'[0-9]+')
+
+def get_representative_phone_numbers():
+    html = url_soup('http://clerk.house.gov/member_info/mcapdir.aspx')
+
+    phones = {}
+    for row in html.table.find_all('tr'):
+        cols = [td.text for td in row.find_all('td')]
+        if len(cols) != 5: continue
+        
+        name, state, district_str, phone, room = cols
+        district_num = re.match(DIGITS_RE, district_str)
+
+        if district_num:
+            district = int(district_num.group(0))
+        elif district_str == 'At Large':
+            district = 0
+        else:
+            continue
+        
+        phones[(state, district)] = '202' + phone.replace('-','')
+    return phones
 
 SINGLE_REPRESENTATIVE_LOCATION_RE = \
   re.compile(r'(?:At-Large|(\d+)(?:st|nd|th)) Congressional district of ([A-Za-z]+)')
@@ -66,10 +105,9 @@ MULTI_REPRESENTATIVES_LOCATION_RE = \
   re.compile(r'([A-Za-z]+) District (\d+)')
 
 def find_representative_for_zip(zip):
-    response = requests.get('http://ziplook.house.gov/htbin/findrep?ZIP=%s' % zip)
-    html     = BeautifulSoup(response.text, 'lxml')
-    content  = html.find(id='contentNav')
-    one_rep  = content.find(id='RepInfo')
+    html    = url_soup('http://ziplook.house.gov/htbin/findrep?ZIP=%s' % zip)
+    content = html.find(id='contentNav')
+    one_rep = content.find(id='RepInfo')
     if one_rep:
         name = one_rep.a
         location_string = content.find('em').find_next_sibling(string=True)
@@ -97,30 +135,6 @@ def find_representative_for_zip(zip):
             )
         
         return list(map(rep, content.find_all(class_='RepInfo')))
-
-DIGITS_RE = re.compile(r'[0-9]+')
-
-def get_representative_phone_numbers():
-    response = requests.get('http://clerk.house.gov/member_info/mcapdir.aspx')
-    html     = BeautifulSoup(response.text, 'lxml')
-
-    phones = {}
-    for row in html.table.find_all('tr'):
-        cols = [td.text for td in row.find_all('td')]
-        if len(cols) != 5: continue
-        
-        name, state, district_str, phone, room = cols
-        district_num = re.match(DIGITS_RE, district_str)
-
-        if district_num:
-            district = int(district_num.group(0))
-        elif district_str == 'At Large':
-            district = 0
-        else:
-            continue
-        
-        phones[(state, district)] = '202' + phone.replace('-','')
-    return phones
 
 def get_representatives(zip):
     phones = get_representative_phone_numbers()
