@@ -23,6 +23,12 @@
             {% for critter in representatives %}
                 <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}-{{critter.district}}): <i>phone number not found</i></li>
             {% endfor %}
+            {% for critter in global_senators %}
+                <li> Sen. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}): <i>phone number not found</i></li>
+            {% endfor %}
+            {% for critter in global_representatives %}
+                <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}-{{critter.district}}): <i>phone number not found</i></li>
+            {% endfor %}
         </ul>
 
         {% for critter in senators %}
@@ -35,6 +41,20 @@
         {% for critter in representatives %}
             <h1 id="script-for-{{critter.name|slugify}}">Script for {{critter.name}}</h1>
             <p>Hello, this is {{name}} and I'm calling from {{city}}. I'm calling to ask when my representative will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
+            <p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
+            <p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
+        {% endfor %}
+
+        {% for critter in global_senators %}
+            <h1 id="script-for-{{critter.name|slugify}}">Script for {{critter.name}}</h1>
+            <p>Hello, this is {{name}} and I'm calling from {{state}}. I'm calling to ask when my senator will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
+            <p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
+            <p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
+        {% endfor %}
+
+        {% for critter in global_representatives %}
+            <h1 id="script-for-{{critter.name|slugify}}">Script for {{critter.name}}</h1>
+            <p>Hello, this is {{name}} and I'm calling from {{state}}. I'm calling to ask when my representative will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
             <p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
             <p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
         {% endfor %}

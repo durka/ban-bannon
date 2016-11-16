@@ -6,6 +6,7 @@ class Politician(models.Model):
     DENOUNCES = 'D'
     HOUSE = 'H'
     SENATE = 'S'
+    name = models.CharField(max_length=200)
     chamber = models.CharField(max_length=1,
                                choices=[(HOUSE, 'House of Representatives'),
                                         (SENATE, 'Senate')])
@@ -66,10 +67,10 @@ class Politician(models.Model):
                                          (DENOUNCES, 'Denounces')],
                                 default=HAS_NOT_SAID)
     shown_to_all = models.BooleanField(default=False)
-    extra_phones = models.ForeignKey('Phone', null=True)
+    extra_phones = models.ForeignKey('Phone', null=True, blank=True)
 
     def __str__(self):
-        return '%s-%s-%d' % (self.chamber, self.state, self.district_or_class)
+        return '%s (%s-%s-%d)' % (self.name, self.chamber, self.state, self.district_or_class)
 
 class Phone(models.Model):
     number = models.CharField(max_length=10)
