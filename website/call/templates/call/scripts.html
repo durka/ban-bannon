@@ -19,15 +19,27 @@
         <ul>
             {% for critter in senators %}
                 <li> Sen. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}): ({{critter.dc_phone|slice:":3"}}) {{critter.dc_phone|slice:"3:6"}}-{{critter.dc_phone|slice:"6:"}}</li>
+                {% for phone in critter.local_phones %}
+                    <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}) {{phone.desc}}: ({{phone.number|slice:":3"}}) {{phone.number|slice:"3:6"}}-{{phone.number|slice:"6:"}}</li>
+                {% endfor %}
             {% endfor %}
             {% for critter in representatives %}
                 <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}-{{critter.district}}): ({{critter.dc_phone|slice:":3"}}) {{critter.dc_phone|slice:"3:6"}}-{{critter.dc_phone|slice:"6:"}}</li>
+                {% for phone in critter.local_phones %}
+                    <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}-{{critter.district}}) {{phone.desc}}: ({{phone.number|slice:":3"}}) {{phone.number|slice:"3:6"}}-{{phone.number|slice:"6:"}}</li>
+                {% endfor %}
             {% endfor %}
             {% for critter in global_senators %}
-                <li> Sen. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}): ({{critter.dc_phone|slice:":3"}}) {{critter.dc_phone|slice:"3:6"}}-{{critter.dc_phone|slice:"6:"}}</li>
+                <li> Sen. {{critter.rep.name}} ({{critter.rep.party|slice:":1"}}-{{critter.rep.state}}): ({{critter.rep.dc_phone|slice:":3"}}) {{critter.rep.dc_phone|slice:"3:6"}}-{{critter.rep.dc_phone|slice:"6:"}}</li>
+                {% for phone in critter.local_phones %}
+                    <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}) {{phone.desc}}: ({{phone.number|slice:":3"}}) {{phone.number|slice:"3:6"}}-{{phone.number|slice:"6:"}}</li>
+                {% endfor %}
             {% endfor %}
             {% for critter in global_representatives %}
                 <li> Rep. {{critter.rep.name}} ({{critter.rep.party|slice:":1"}}-{{critter.rep.state}}-{{critter.rep.district}}): ({{critter.rep.dc_phone|slice:":3"}}) {{critter.rep.dc_phone|slice:"3:6"}}-{{critter.rep.dc_phone|slice:"6:"}}</li>
+                {% for phone in critter.local_phones %}
+                    <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}-{{critter.district}}) {{phone.desc}}: ({{phone.number|slice:":3"}}) {{phone.number|slice:"3:6"}}-{{phone.number|slice:"6:"}}</li>
+                {% endfor %}
             {% endfor %}
         </ul>
 
@@ -52,7 +64,7 @@
         {% endfor %}
 
         {% for critter in global_senators %}
-            <h1 id="script-for-{{critter.name|slugify}}">Script for {{critter.name}}</h1>
+            <h1 id="script-for-{{critter.rep.name|slugify}}">Script for {{critter.rep.name}}</h1>
             <p>Hello, this is {{name}} and I'm calling from {{state}}. I'm calling to ask when my senator will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
             <p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
             <p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
