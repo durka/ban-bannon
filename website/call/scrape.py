@@ -171,7 +171,7 @@ PARTY_CHARS = { 'D': 'Democrat',
                 'L': 'Libertarian',
                 'G': 'Green' }
 
-def get_senators_for_state(state):
+def get_senators(state):
     html = url_soup('http://www.senate.gov/senators/contact/senators_cfm.cfm?State=%s' % state)
     
     senators    = []
