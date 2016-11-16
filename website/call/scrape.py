@@ -68,35 +68,51 @@ def zip_code_city_state(zip):
     city, state = CITY_STATE_RE.fullmatch(city_str).groups()
     return (city.title(), state)
 
-def comma_name_to_simple_name(str):
+################################################################################
+
+Name = namedtuple('Name', ['first', 'last', 'suffix'])
+
+def parse_comma_name(str):
     components = [s.strip() for s in str.split(',', 2)]
     if len(components) == 3:
         last, first, suffix = components
-        return '%s %s %s' % (first, last, suffix)
     else:
         last, first = components
-        return '%s %s' % (first, last)
+        suffix      = None
+    return Name(first, last, suffix)
+
+def pretty_name(name):
+    if name.suffix:
+        return '%s %s %s' % name
+    else:
+        return '%s %s' % (name.first, name.last)
 
 ################################################################################
 
 Representative = namedtuple('Representative',
-                            ['name', 'party', 'state', 'district',
+                            ['name', 'name_parts',
+                             'party', 'state', 'district',
                              'dc_phone', 'local_phones',
                              'custom_script'])
 
+ExtraRepInfo = namedtuple('ExtraRepInfo', ['name_parts', 'dc_phone'])
+
+def add_extra_info(rep, eri):
+    return rep._replace(name_parts = eri.name_parts, dc_phone = eri.dc_phone)
+
 DIGITS_RE = re.compile(r'[0-9]+')
 
-def get_representative_phone_numbers():
+def get_representative_extra_info():
     html = url_soup('http://clerk.house.gov/member_info/mcapdir.aspx')
 
-    phones = {}
+    info = {}
     for row in html.table.find_all('tr'):
         cols = [td.text for td in row.find_all('td')]
         if len(cols) != 5: continue
         
         name, state, district_str, phone, room = cols
         district_num = re.match(DIGITS_RE, district_str)
-
+        
         if district_num:
             district = int(district_num.group(0))
         elif district_str == 'At Large':
@@ -104,8 +120,9 @@ def get_representative_phone_numbers():
         else:
             continue
         
-        phones[(state, district)] = '202' + phone.replace('-','')
-    return phones
+        info[(state, district)] = ExtraRepInfo(name_parts = parse_comma_name(name),
+                                               dc_phone   = '202' + phone.replace('-',''))
+    return info
 
 SINGLE_REPRESENTATIVE_LOCATION_RE = \
   re.compile(r'(?:At-Large|(\d+)(?:st|nd|th)) Congressional district of ([A-Za-z]+)')
@@ -124,6 +141,7 @@ def find_representative_for_zip(zip):
         
         return [Representative(
             name          = name.string.strip(),
+            name_parts    = None,
             party         = name.find_next_sibling(string=True).strip(),
             state         = STATES[state],
             district      = int(district) if district else 0,
@@ -139,6 +157,7 @@ def find_representative_for_zip(zip):
             
             return Representative(
                 name          = name.string.strip(),
+                name_parts    = None,
                 party         = party.strip(),
                 state         = STATES[state],
                 district      = int(district),
@@ -150,14 +169,15 @@ def find_representative_for_zip(zip):
         return list(map(rep, content.find_all(class_='RepInfo')))
 
 def get_representatives(zip):
-    phones = get_representative_phone_numbers()
-    return [rep._replace(dc_phone = phones[(rep.state, rep.district)])
+    info = get_representative_extra_info()
+    return [add_extra_info(rep, info[(rep.state, rep.district)])
             for rep in find_representative_for_zip(zip)]
 
 ################################################################################
 
 Senator = namedtuple('Senator',
-                     ['name', 'party', 'state', 'class_',
+                     ['name', 'name_parts',
+                      'party', 'state', 'class_',
                       'dc_phone', 'local_phones',
                       'custom_script'])
 
@@ -181,11 +201,14 @@ def get_senators(state):
         if row_index == 0:
             person, class_str = row.find_all('td')
             name              = person.a
+            name_parts        = parse_comma_name(name.text.strip())
             party_char, state = SENATOR_AFFILIATION_RE.search(name.find_next_sibling(string=True)).groups()
             class_            = len(SENATOR_CLASS_RE.search(class_str.text).group(1))
             
+            
             cur_senator = Senator(
-                name          = comma_name_to_simple_name(name.text.strip()),
+                name          = pretty_name(name_parts),
+                name_parts    = name_parts,
                 party         = PARTY_CHARS.get(party_char, party_char),
                 state         = state,
                 class_        = class_,
