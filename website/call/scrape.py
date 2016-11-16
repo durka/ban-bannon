@@ -94,5 +94,5 @@ def get_representatives(zip):
                 district = int(district)
             )
         
-        return [rep(info) for info in soup.find(id='contentNav').find_all(class_='RepInfo')]
+        return [rep(info) for info in content.find_all(class_='RepInfo')]
 
