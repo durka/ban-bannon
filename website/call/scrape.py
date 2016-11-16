@@ -155,7 +155,7 @@ Senator = namedtuple('Senator',
                       'custom_script'])
 
 SENATOR_AFFILIATION_RE = re.compile(r'\(([A-Z]) - ([A-Z][A-Z])\)')
-SENATOR_CLASS_RE       = re.compile(r'Class \(I+\)')
+SENATOR_CLASS_RE       = re.compile(r'Class (I+)')
 NON_DIGIT_RE           = re.compile(r'[^0-9]')
 
 PARTY_CHARS = { 'D': 'Democrat',
@@ -190,7 +190,7 @@ def get_senators_for_state(state):
             # Address line
             pass
         elif row_index == 2:
-            cur_senator = cur_senator.replace_(dc_phone = NON_DIGIT_RE.sub('', row.text))
+            cur_senator = cur_senator._replace(dc_phone = NON_DIGIT_RE.sub('', row.text))
         elif row_index == 3:
             # Contact
             pass
