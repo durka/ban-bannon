@@ -6,6 +6,10 @@ def index(request):
     return render(request, 'call/index.html', context)
 
 def scripts(request):
-    context = {'zip': request.POST['zip']}
+    zipcode = request.POST['zip']
+    context = {'name': request.POST.get('name', '$NAME'),
+               'city': '$CITY',
+               'state': '$STATE',
+               'representatives': scrape.get_representatives(zipcode)}
     return render(request, 'call/scripts.html', context)
 

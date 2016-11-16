@@ -2,60 +2,58 @@
 
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <meta name="generator" content="pandoc">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <meta name="author" content="Antal Spector-Zabusky">
-  <title>Anti Steve Bannon script & resources (PA)</title>
-  <style type="text/css">code{white-space: pre;}</style>
-  <link rel="stylesheet" href="{% static "killercup-pandoc.css" %}">
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
-</head>
-<body>
-    Hi! You live at ZIP code {{ zip }}
-<h1 id="phone-numbers">Phone numbers</h1>
-<ul>
-<li>Sen. Pat Toomey (DC): (202) 224-4254</li>
-<li>Sen. Pat Toomey (Philadelphia): (215) 241-1090</li>
-<li>Sen. Pat Toomey (PA-only toll-free number): (855) 552-1831</li>
-<li>Rep. Dwight Evans (DC): (202) 225-4001</li>
-<li>Sen. Mitch McConnell, Majority Leader (DC): (202) 224-2541</li>
-<li>Rep. Paul Ryan, Speaker of the House (DC): (202) 225-3031</li>
-</ul>
-<h1 id="script-for-toomey">Script for Toomey</h1>
-<p>Hello, this is $NAME and I'm calling from $CITY. I'm calling to ask when Senator Toomey will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
-<p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
-<p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
-<h1 id="script-for-evans">Script for Evans</h1>
-<p>Hello, this is $NAME and I'm calling from $CITY. I know Representative Evans has just been sworn in, and I'm calling to ask when he'll be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
-<p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
-<p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
-<h1 id="script-for-mcconnell">Script for McConnell</h1>
-<p>Hello, this is $NAME and I'm calling from $STATE. I'm calling to ask when Senator McConnell will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
-<p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
-<p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
-<h1 id="script-for-ryan">Script for Ryan</h1>
-<p>Hello, this is $NAME and I'm calling from $STATE. I'm calling to ask Mr. Ryan to reconsider and condemn Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
-<p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
-<p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
-<h1 id="resources">Resources</h1>
-<ul>
-<li>SPLC: <a href="https://www.splcenter.org/stephen-bannon-has-no-business-white-house" class="uri">https://www.splcenter.org/stephen-bannon-has-no-business-white-house</a></li>
-<li>NY Times: <a href="http://www.nytimes.com/2016/11/15/us/politics/stephen-bannon-breitbart-words.html" class="uri">http://www.nytimes.com/2016/11/15/us/politics/stephen-bannon-breitbart-words.html</a></li>
-<li>/r/NeutralPolitics: <a href="https://www.reddit.com/r/NeutralPolitics/comments/5d33ad/" class="uri">https://www.reddit.com/r/NeutralPolitics/comments/5d33ad/</a></li>
-<li>Snopes: <a href="http://www.snopes.com/2016/11/14/steve-bannon-accused-of-having-white-supremacist-views/" class="uri">http://www.snopes.com/2016/11/14/steve-bannon-accused-of-having-white-supremacist-views/</a></li>
-<li>Ben Shapiro, former Breitbart editor-at-large (terrible ad-ridden website): <a href="http://www.dailywire.com/news/8441/i-know-trumps-new-campaign-chairman-steve-bannon-ben-shapiro" class="uri">http://www.dailywire.com/news/8441/i-know-trumps-new-campaign-chairman-steve-bannon-ben-shapiro</a></li>
-<li>Mother Jones: <a href="http://www.motherjones.com/kevin-drum/2016/11/steve-bannon-racist-lets-find-out" class="uri">http://www.motherjones.com/kevin-drum/2016/11/steve-bannon-racist-lets-find-out</a></li>
-</ul>
-<h1 id="congressional-contact-information">Congressional contact information</h1>
-<ul>
-<li>Senate: <a href="http://www.senate.gov/general/contact_information/senators_cfm.cfm" class="uri">http://www.senate.gov/general/contact_information/senators_cfm.cfm</a></li>
-<li>House: <a href="http://clerk.house.gov/member_info/mcapdir.aspx" class="uri">http://clerk.house.gov/member_info/mcapdir.aspx</a></li>
-<li>Find your representative: <a href="http://www.house.gov/representatives/find/" class="uri">http://www.house.gov/representatives/find/</a></li>
-</ul>
-</body>
+    <head>
+        <meta charset="utf-8">
+        <meta name="generator" content="pandoc">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+        <meta name="author" content="Antal Spector-Zabusky">
+        <title>Anti Steve Bannon script & resources (PA)</title>
+        <style type="text/css">code{white-space: pre;}</style>
+        <link rel="stylesheet" href="{% static "killercup-pandoc.css" %}">
+        <!--[if lt IE 9]>
+            <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+        <h1 id="phone-numbers">Phone numbers</h1>
+        <ul>
+            {% for critter in senators %}
+                <li> Sen. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}): <i>phone number not found</i></li>
+            {% endfor %}
+            {% for critter in representatives %}
+                <li> Rep. {{critter.name}} ({{critter.party|slice:":1"}}-{{critter.state}}-{{critter.district}}): <i>phone number not found</i></li>
+            {% endfor %}
+        </ul>
+
+        {% for critter in senators %}
+            <h1 id="script-for-{{critter.name|slugify}}">Script for {{critter.name}}</h1>
+            <p>Hello, this is {{name}} and I'm calling from {{city}}. I'm calling to ask when my senator will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
+            <p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
+            <p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
+        {% endfor %}
+
+        {% for critter in representatives %}
+            <h1 id="script-for-{{critter.name|slugify}}">Script for {{critter.name}}</h1>
+            <p>Hello, this is {{name}} and I'm calling from {{city}}. I'm calling to ask when my representative will be condemning Donald Trump's appointment of the anti-semitic white nationalist Steve Bannon as his chief strategist.</p>
+            <p>[If &quot;no&quot;:] Thank you; I'll be calling back tomorrow.</p>
+            <p>[If &quot;yes&quot;:] Thank you, I look forward to seeing the statement.</p>
+        {% endfor %}
+
+        <h1 id="resources">Resources</h1>
+        <ul>
+            <li>SPLC: <a href="https://www.splcenter.org/stephen-bannon-has-no-business-white-house" class="uri">https://www.splcenter.org/stephen-bannon-has-no-business-white-house</a></li>
+            <li>NY Times: <a href="http://www.nytimes.com/2016/11/15/us/politics/stephen-bannon-breitbart-words.html" class="uri">http://www.nytimes.com/2016/11/15/us/politics/stephen-bannon-breitbart-words.html</a></li>
+            <li>/r/NeutralPolitics: <a href="https://www.reddit.com/r/NeutralPolitics/comments/5d33ad/" class="uri">https://www.reddit.com/r/NeutralPolitics/comments/5d33ad/</a></li>
+            <li>Snopes: <a href="http://www.snopes.com/2016/11/14/steve-bannon-accused-of-having-white-supremacist-views/" class="uri">http://www.snopes.com/2016/11/14/steve-bannon-accused-of-having-white-supremacist-views/</a></li>
+            <li>Ben Shapiro, former Breitbart editor-at-large (terrible ad-ridden website): <a href="http://www.dailywire.com/news/8441/i-know-trumps-new-campaign-chairman-steve-bannon-ben-shapiro" class="uri">http://www.dailywire.com/news/8441/i-know-trumps-new-campaign-chairman-steve-bannon-ben-shapiro</a></li>
+            <li>Mother Jones: <a href="http://www.motherjones.com/kevin-drum/2016/11/steve-bannon-racist-lets-find-out" class="uri">http://www.motherjones.com/kevin-drum/2016/11/steve-bannon-racist-lets-find-out</a></li>
+        </ul>
+        <h1 id="congressional-contact-information">Congressional contact information</h1>
+        <ul>
+            <li>Senate: <a href="http://www.senate.gov/general/contact_information/senators_cfm.cfm" class="uri">http://www.senate.gov/general/contact_information/senators_cfm.cfm</a></li>
+            <li>House: <a href="http://clerk.house.gov/member_info/mcapdir.aspx" class="uri">http://clerk.house.gov/member_info/mcapdir.aspx</a></li>
+            <li>Find your representative: <a href="http://www.house.gov/representatives/find/" class="uri">http://www.house.gov/representatives/find/</a></li>
+        </ul>
+    </body>
 </html>
 
