@@ -100,7 +100,7 @@ def find_representative_for_zip(zip):
 
 DIGITS_RE = re.compile(r'[0-9]+')
 
-def get_representative_phone_unmbers():
+def get_representative_phone_numbers():
     response = requests.get('http://clerk.house.gov/member_info/mcapdir.aspx')
     html     = BeautifulSoup(response.text, 'lxml')
 
@@ -122,7 +122,7 @@ def get_representative_phone_unmbers():
         phones[(state, district)] = '202' + phone.replace('-','')
     return phones
 
-def get_representative(zip):
-    phones = get_representative_phones()
+def get_representatives(zip):
+    phones = get_representative_phone_numbers()
     return [rep._replace(dc_phone = phones[(rep.state, rep.district)])
             for rep in find_representative_for_zip(zip)]
