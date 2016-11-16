@@ -57,7 +57,7 @@ STATES = { 'Alabama':        'AL',
 
 
 Representative = namedtuple('Representative',
-                            ['name', 'party', 'state', 'district'])
+                            ['name', 'party', 'state', 'district', 'dc_phone'])
 
 SINGLE_REPRESENTATIVE_LOCATION_RE = \
   re.compile(r'(?:At-Large|(\d+)(?:st|nd|th)) Congressional district of ([A-Za-z]+)')
@@ -65,7 +65,7 @@ SINGLE_REPRESENTATIVE_LOCATION_RE = \
 MULTI_REPRESENTATIVES_LOCATION_RE = \
   re.compile(r'([A-Za-z]+) District (\d+)')
 
-def get_representatives(zip):
+def find_representative_for_zip(zip):
     response = requests.get('http://ziplook.house.gov/htbin/findrep?ZIP=%s' % zip)
     html     = BeautifulSoup(response.text, 'lxml')
     content  = html.find(id='contentNav')
@@ -79,7 +79,8 @@ def get_representatives(zip):
             name     = name.string.strip(),
             party    = name.find_next_sibling(string=True).strip(),
             state    = STATES[state],
-            district = int(district) if district else 0
+            district = int(district) if district else 0,
+            dc_phone = None
         )]
     else:
         def rep(info):
@@ -91,8 +92,37 @@ def get_representatives(zip):
                 name     = name.string.strip(),
                 party    = party.strip(),
                 state    = STATES[state],
-                district = int(district)
+                district = int(district),
+                dc_phone = None
             )
         
-        return [rep(info) for info in content.find_all(class_='RepInfo')]
+        return list(map(rep, content.find_all(class_='RepInfo')))
 
+DIGITS_RE = re.compile(r'[0-9]+')
+
+def get_representative_phone_unmbers():
+    response = requests.get('http://clerk.house.gov/member_info/mcapdir.aspx')
+    html     = BeautifulSoup(response.text, 'lxml')
+
+    phones = {}
+    for row in html.table.find_all('tr'):
+        cols = [td.text for td in row.find_all('td')]
+        if len(cols) != 5: continue
+        
+        name, state, district_str, phone, room = cols
+        district_num = re.match(DIGITS_RE, district_str)
+
+        if district_num:
+            district = int(district_num.group(0))
+        elif district_str == 'At Large':
+            district = 0
+        else:
+            continue
+        
+        phones[(state, district)] = '202' + phone.replace('-','')
+    return phones
+
+def get_representative(zip):
+    phones = get_representative_phones()
+    return [rep._replace(dc_phone = phones[(rep.state, rep.district)])
+            for rep in find_representative_for_zip(zip)]
