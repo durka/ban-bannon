@@ -55,54 +55,32 @@ STATES = { 'Alabama':        'AL',
            'Wisconsin':      'WI',
            'Wyoming':        'WY' }
 
+################################################################################
+    
+def url_soup(url):
+    return BeautifulSoup(requests.get(url, headers={'User-Agent': 'Not Mozilla'}).text, 'lxml')
+
+################################################################################
+
+CITY_STATE_RE = re.compile(r'(.+) ([A-Z][A-Z])')
+
+def zip_code_city_state(zip):
+    html = url_soup('https://tools.usps.com/go/ZipLookupResultsAction!input.action?resultMode=2&postalCode=%s' % zip)
+    city_str = html.find(id='result-cities').find(class_='std-address').string
+    city, state = CITY_STATE_RE.fullmatch(city_str).groups()
+    return (city.title(), state)
+
+################################################################################
 
 Representative = namedtuple('Representative',
-                            ['name', 'party', 'state', 'district', 'dc_phone'])
-
-SINGLE_REPRESENTATIVE_LOCATION_RE = \
-  re.compile(r'(?:At-Large|(\d+)(?:st|nd|th)) Congressional district of ([A-Za-z]+)')
-
-MULTI_REPRESENTATIVES_LOCATION_RE = \
-  re.compile(r'([A-Za-z]+) District (\d+)')
-
-def find_representative_for_zip(zip):
-    response = requests.get('http://ziplook.house.gov/htbin/findrep?ZIP=%s' % zip)
-    html     = BeautifulSoup(response.text, 'lxml')
-    content  = html.find(id='contentNav')
-    one_rep  = content.find(id='RepInfo')
-    if one_rep:
-        name = one_rep.a
-        location_string = content.find('em').find_next_sibling(string=True)
-        district, state = SINGLE_REPRESENTATIVE_LOCATION_RE.search(location_string).groups()
-        
-        return [Representative(
-            name     = name.string.strip(),
-            party    = name.find_next_sibling(string=True).strip(),
-            state    = STATES[state],
-            district = int(district) if district else 0,
-            dc_phone = None
-        )]
-    else:
-        def rep(info):
-            name = info.a
-            party, location_string = name.find_next_siblings(string=True)
-            state, district = MULTI_REPRESENTATIVES_LOCATION_RE.search(location_string).groups()
-            
-            return Representative(
-                name     = name.string.strip(),
-                party    = party.strip(),
-                state    = STATES[state],
-                district = int(district),
-                dc_phone = None
-            )
-        
-        return list(map(rep, content.find_all(class_='RepInfo')))
+                            ['name', 'party', 'state', 'district',
+                             'dc_phone', 'local_phones',
+                             'custom_script'])
 
 DIGITS_RE = re.compile(r'[0-9]+')
 
 def get_representative_phone_numbers():
-    response = requests.get('http://clerk.house.gov/member_info/mcapdir.aspx')
-    html     = BeautifulSoup(response.text, 'lxml')
+    html = url_soup('http://clerk.house.gov/member_info/mcapdir.aspx')
 
     phones = {}
     for row in html.table.find_all('tr'):
@@ -122,7 +100,105 @@ def get_representative_phone_numbers():
         phones[(state, district)] = '202' + phone.replace('-','')
     return phones
 
+SINGLE_REPRESENTATIVE_LOCATION_RE = \
+  re.compile(r'(?:At-Large|(\d+)(?:st|nd|th)) Congressional district of ([A-Za-z]+)')
+
+MULTI_REPRESENTATIVES_LOCATION_RE = \
+  re.compile(r'([A-Za-z]+) District (\d+)')
+
+def find_representative_for_zip(zip):
+    html    = url_soup('http://ziplook.house.gov/htbin/findrep?ZIP=%s' % zip)
+    content = html.find(id='contentNav')
+    one_rep = content.find(id='RepInfo')
+    if one_rep:
+        name = one_rep.a
+        location_string = content.find('em').find_next_sibling(string=True)
+        district, state = SINGLE_REPRESENTATIVE_LOCATION_RE.search(location_string).groups()
+        
+        return [Representative(
+            name          = name.string.strip(),
+            party         = name.find_next_sibling(string=True).strip(),
+            state         = STATES[state],
+            district      = int(district) if district else 0,
+            dc_phone      = None,
+            local_phones  = [],
+            custom_script = None
+        )]
+    else:
+        def rep(info):
+            name = info.a
+            party, location_string = name.find_next_siblings(string=True)
+            state, district = MULTI_REPRESENTATIVES_LOCATION_RE.search(location_string).groups()
+            
+            return Representative(
+                name          = name.string.strip(),
+                party         = party.strip(),
+                state         = STATES[state],
+                district      = int(district),
+                dc_phone      = None,
+                local_phones  = [],
+                custom_script = None
+            )
+        
+        return list(map(rep, content.find_all(class_='RepInfo')))
+
 def get_representatives(zip):
     phones = get_representative_phone_numbers()
     return [rep._replace(dc_phone = phones[(rep.state, rep.district)])
             for rep in find_representative_for_zip(zip)]
+
+################################################################################
+
+Senator = namedtuple('Senator',
+                     ['name', 'party', 'state', 'class_',
+                      'dc_phone', 'local_phones',
+                      'custom_script'])
+
+SENATOR_AFFILIATION_RE = re.compile(r'\(([A-Z]) - ([A-Z][A-Z])\)')
+SENATOR_CLASS_RE       = re.compile(r'Class \(I+\)')
+NON_DIGIT_RE           = re.compile(r'[^0-9]')
+
+PARTY_CHARS = { 'D': 'Democrat',
+                'R': 'Republican',
+                'I': 'Independent',
+                'L': 'Libertarian',
+                'G': 'Green' }
+
+def get_senators_for_state(state):
+    html = url_soup('http://www.senate.gov/senators/contact/senators_cfm.cfm?State=%s' % state)
+    
+    senators    = []
+    cur_senator = None
+    row_index   = 0 # The rows in the table go person, address, phone number, URL, and terminator line
+    for row in soup.find_all('table')[1].find_all('tr'):
+        if row_index == 0:
+            person, class_str = row.find_all('td')
+            name              = person.a
+            party_char, state = SENATOR_AFFILIATION_RE.search(name.find_next_sibling(string=True)).groups()
+            class_            = len(SENATOR_CLASS_RE.search(class_str.text).group(1))
+            
+            cur_senator = Senator(
+                name          = name.text.strip(),
+                party         = PARTY_CHARS.get(party_char, party_char),
+                state         = state,
+                class_        = class_,
+                dc_phone      = None,
+                local_phones  = [],
+                custom_script = None
+            )
+        elif row_index == 1:
+            # Address line
+            pass
+        elif row_index == 2:
+            cur_senator = cur_senator.replace_(dc_phone = NON_DIGIT_RE.sub('', row.text))
+        elif row_index == 3:
+            # Contact
+            pass
+        elif row_index == 4:
+            # Separator/terminator
+            senators.append(cur_senator)
+            cur_senator = None
+        
+        row_index = (row_index + 1) % 5
+    
+    return senators
