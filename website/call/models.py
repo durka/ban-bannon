@@ -1,11 +1,23 @@
 from django.db import models
 
+class GetOrNoneManager(models.Manager):
+    """Adds get_or_none method to objects
+    """
+    def get_or_none(self, **kwargs):
+        try:
+            return self.get(**kwargs)
+        except self.model.DoesNotExist:
+            return None
+
 class Politician(models.Model):
+    objects = GetOrNoneManager()
+
     HAS_NOT_SAID = 'N'
     SUPPORTS = 'S'
     DENOUNCES = 'D'
     HOUSE = 'H'
     SENATE = 'S'
+
     zip_or_state = models.CharField(max_length=5)
     district_or_class = models.PositiveSmallIntegerField()
     chamber = models.CharField(max_length=1,

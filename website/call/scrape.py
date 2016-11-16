@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import lxml
 import re
+from call.models import Politician
 
 STATES = { 'Alabama':        'AL',
            'Alaska':         'AK',
@@ -55,6 +56,12 @@ STATES = { 'Alabama':        'AL',
            'Wisconsin':      'WI',
            'Wyoming':        'WY' }
 
+Critter = namedtuple('Critter',
+                     ['name', 'last_name',
+                      'chamber', 'party', 'state',
+                      'disambig', # rep district or senator class
+                      'dc_phone'])
+
 ################################################################################
     
 def url_soup(url):
@@ -81,12 +88,6 @@ def parse_comma_name(str):
     return (full, last)
 
 ################################################################################
-
-Representative = namedtuple('Representative',
-                            ['name', 'last_name',
-                             'party', 'state', 'district',
-                             'dc_phone', 'local_phones',
-                             'custom_script'])
 
 ExtraRepInfo = namedtuple('ExtraRepInfo', ['last_name', 'dc_phone'])
 
@@ -132,15 +133,14 @@ def find_representative_for_zip(zip):
         location_string = content.find('em').find_next_sibling(string=True)
         district, state = SINGLE_REPRESENTATIVE_LOCATION_RE.search(location_string).groups()
         
-        return [Representative(
+        return [Critter(
             name          = name.string.strip(),
             last_name     = None,
+            chamber       = Politician.HOUSE,
             party         = name.find_next_sibling(string=True).strip(),
             state         = STATES[state],
-            district      = int(district) if district else 0,
-            dc_phone      = None,
-            local_phones  = [],
-            custom_script = None
+            disambig      = int(district) if district else 0,
+            dc_phone      = None
         )]
     else:
         def rep(info):
@@ -148,31 +148,24 @@ def find_representative_for_zip(zip):
             party, location_string = name.find_next_siblings(string=True)
             state, district = MULTI_REPRESENTATIVES_LOCATION_RE.search(location_string).groups()
             
-            return Representative(
+            return Critter(
                 name          = name.string.strip(),
                 last_name     = None,
+                chamber       = Politician.HOUSE,
                 party         = party.strip(),
                 state         = STATES[state],
-                district      = int(district),
-                dc_phone      = None,
-                local_phones  = [],
-                custom_script = None
+                disambig      = int(district),
+                dc_phone      = None
             )
         
         return list(map(rep, content.find_all(class_='RepInfo')))
 
 def get_representatives(zip):
     info = get_representative_extra_info()
-    return [add_extra_info(rep, info[(rep.state, rep.district)])
+    return [add_extra_info(rep, info[(rep.state, rep.disambig)])
             for rep in find_representative_for_zip(zip)]
 
 ################################################################################
-
-Senator = namedtuple('Senator',
-                     ['name', 'last_name',
-                      'party', 'state', 'class_',
-                      'dc_phone', 'local_phones',
-                      'custom_script'])
 
 SENATOR_AFFILIATION_RE = re.compile(r'\(([A-Z]) - ([A-Z][A-Z])\)')
 SENATOR_CLASS_RE       = re.compile(r'Class (I+)')
@@ -199,15 +192,14 @@ def get_senators(state):
             class_            = len(SENATOR_CLASS_RE.search(class_str.text).group(1))
             
             
-            cur_senator = Senator(
+            cur_senator = Critter(
                 name          = name,
                 last_name     = last_name,
+                chamber       = Politician.SENATE,
                 party         = PARTY_CHARS.get(party_char, party_char),
                 state         = state,
-                class_        = class_,
-                dc_phone      = None,
-                local_phones  = [],
-                custom_script = None
+                disambig      = class_,
+                dc_phone      = None
             )
         elif row_index == 1:
             # Address line
