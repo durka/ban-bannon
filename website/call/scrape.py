@@ -140,3 +140,55 @@ def get_representatives(zip):
     phones = get_representative_phone_numbers()
     return [rep._replace(dc_phone = phones[(rep.state, rep.district)])
             for rep in find_representative_for_zip(zip)]
+
+################################################################################
+
+Senator = namedtuple('Senator',
+                     ['name', 'party', 'state', 'class_', 'dc_phone'])
+
+SENATOR_AFFILIATION_RE = re.compile(r'\(([A-Z]) - ([A-Z][A-Z])\)')
+SENATOR_CLASS_RE       = re.compile(r'Class \(I+\)')
+NON_DIGIT_RE           = re.compile(r'[^0-9]')
+
+PARTY_CHARS = { 'D': 'Democrat',
+                'R': 'Republican',
+                'I': 'Independent',
+                'L': 'Libertarian',
+                'G': 'Green' }
+
+def get_senators_for_state(state):
+    html = url_soup('http://www.senate.gov/senators/contact/senators_cfm.cfm?State=%s' % state)
+    
+    senators    = []
+    cur_senator = None
+    row_index   = 0 # The rows in the table go person, address, phone number, URL, and terminator line
+    for row in soup.find_all('table')[1].find_all('tr'):
+        if row_index == 0:
+            person, class_str = row.find_all('td')
+            name              = person.a
+            party_char, state = SENATOR_AFFILIATION_RE.search(name.find_next_sibling(string=True)).groups()
+            class_            = len(SENATOR_CLASS_RE.search(class_str.text).group(1))
+            
+            cur_senator = Senator(
+                name     = name.text.strip(),
+                party    = PARTY_CHARS.get(party_char, party_char),
+                state    = state,
+                class_   = class_,
+                dc_phone = None
+            )
+        elif row_index == 1:
+            # Address line
+            pass
+        elif row_index == 2:
+            cur_senator = cur_senator.replace_(dc_phone = NON_DIGIT_RE.sub('', row.text))
+        elif row_index == 3:
+            # Contact
+            pass
+        elif row_index == 4:
+            # Separator/terminator
+            senators.append(cur_senator)
+            cur_senator = None
+        
+        row_index = (row_index + 1) % 5
+    
+    return senators
