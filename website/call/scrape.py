@@ -60,8 +60,6 @@ STATES = { 'Alabama':        'AL',
 def url_soup(url):
     return BeautifulSoup(requests.get(url, headers={'User-Agent': 'Not Mozilla'}).text, 'lxml')
 
-################################################################################
-
 CITY_STATE_RE = re.compile(r'(.+) ([A-Z][A-Z])')
 
 def zip_code_city_state(zip):
@@ -69,6 +67,15 @@ def zip_code_city_state(zip):
     city_str = html.find(id='result-cities').find(class_='std-address').string
     city, state = CITY_STATE_RE.fullmatch(city_str).groups()
     return (city.title(), state)
+
+def comma_name_to_simple_name(str):
+    components = [s.strip() for s in str.split(',', 2)]
+    if len(components) == 3:
+        last, first, suffix = components
+        return '%s %s %s' % (first, last, suffix)
+    else:
+        last, first = components
+        return '%s %s' % (first, last)
 
 ################################################################################
 
@@ -170,7 +177,7 @@ def get_senators_for_state(state):
     senators    = []
     cur_senator = None
     row_index   = 0 # The rows in the table go person, address, phone number, URL, and terminator line
-    for row in soup.find_all('table')[1].find_all('tr'):
+    for row in html.find_all('table')[1].find_all('tr'):
         if row_index == 0:
             person, class_str = row.find_all('td')
             name              = person.a
@@ -178,7 +185,7 @@ def get_senators_for_state(state):
             class_            = len(SENATOR_CLASS_RE.search(class_str.text).group(1))
             
             cur_senator = Senator(
-                name          = name.text.strip(),
+                name          = comma_name_to_simple_name(name.text.strip()),
                 party         = PARTY_CHARS.get(party_char, party_char),
                 state         = state,
                 class_        = class_,
