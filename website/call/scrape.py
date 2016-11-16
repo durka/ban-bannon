@@ -73,7 +73,9 @@ def zip_code_city_state(zip):
 ################################################################################
 
 Representative = namedtuple('Representative',
-                            ['name', 'party', 'state', 'district', 'dc_phone'])
+                            ['name', 'party', 'state', 'district',
+                             'dc_phone', 'local_phones',
+                             'custom_script'])
 
 DIGITS_RE = re.compile(r'[0-9]+')
 
@@ -114,11 +116,13 @@ def find_representative_for_zip(zip):
         district, state = SINGLE_REPRESENTATIVE_LOCATION_RE.search(location_string).groups()
         
         return [Representative(
-            name     = name.string.strip(),
-            party    = name.find_next_sibling(string=True).strip(),
-            state    = STATES[state],
-            district = int(district) if district else 0,
-            dc_phone = None
+            name          = name.string.strip(),
+            party         = name.find_next_sibling(string=True).strip(),
+            state         = STATES[state],
+            district      = int(district) if district else 0,
+            dc_phone      = None,
+            local_phones  = [],
+            custom_script = None
         )]
     else:
         def rep(info):
@@ -127,11 +131,13 @@ def find_representative_for_zip(zip):
             state, district = MULTI_REPRESENTATIVES_LOCATION_RE.search(location_string).groups()
             
             return Representative(
-                name     = name.string.strip(),
-                party    = party.strip(),
-                state    = STATES[state],
-                district = int(district),
-                dc_phone = None
+                name          = name.string.strip(),
+                party         = party.strip(),
+                state         = STATES[state],
+                district      = int(district),
+                dc_phone      = None,
+                local_phones  = [],
+                custom_script = None
             )
         
         return list(map(rep, content.find_all(class_='RepInfo')))
@@ -144,7 +150,9 @@ def get_representatives(zip):
 ################################################################################
 
 Senator = namedtuple('Senator',
-                     ['name', 'party', 'state', 'class_', 'dc_phone'])
+                     ['name', 'party', 'state', 'class_',
+                      'dc_phone', 'local_phones',
+                      'custom_script'])
 
 SENATOR_AFFILIATION_RE = re.compile(r'\(([A-Z]) - ([A-Z][A-Z])\)')
 SENATOR_CLASS_RE       = re.compile(r'Class \(I+\)')
@@ -170,11 +178,13 @@ def get_senators_for_state(state):
             class_            = len(SENATOR_CLASS_RE.search(class_str.text).group(1))
             
             cur_senator = Senator(
-                name     = name.text.strip(),
-                party    = PARTY_CHARS.get(party_char, party_char),
-                state    = state,
-                class_   = class_,
-                dc_phone = None
+                name          = name.text.strip(),
+                party         = PARTY_CHARS.get(party_char, party_char),
+                state         = state,
+                class_        = class_,
+                dc_phone      = None,
+                local_phones  = [],
+                custom_script = None
             )
         elif row_index == 1:
             # Address line
