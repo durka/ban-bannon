@@ -57,7 +57,14 @@ STATES = { 'Alabama':        'AL',
            'Washington':     'WA',
            'West Virginia':  'WV',
            'Wisconsin':      'WI',
-           'Wyoming':        'WY' }
+           'Wyoming':        'WY',
+           'District':       'DC', # District of Columbia
+           'Puerto':         'PR', # Puerto Rico
+           'American':       'AS', # American Samoa
+           'Guam':           'GU',
+           'Northern':       'MP', # Northern Mariana Islands
+           'Virgin':         'VI', # US Virgin Islands
+           }
 
 Critter = namedtuple('Critter',
                      ['name', 'last_name',
@@ -112,10 +119,8 @@ def get_representative_extra_info():
         
         if district_num:
             district = int(district_num.group(0))
-        elif district_str == 'At Large':
-            district = 0
         else:
-            continue
+            district = 0
         
         info[(state, district)] = ExtraRepInfo(last_name = parse_comma_name(name)[1],
                                                dc_phone   = '202' + phone.replace('-',''))
@@ -228,12 +233,22 @@ def get_senators(state):
 SHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/111wy-SKScdGOQ8z_ddk3TARvc4-RAXwRL6I6phoLx70/values/%s?key=AIzaSyANbbbSxNMgc5ZCcvdyHEh6yUHwix3qy1g'
 
 def check_positions(state):
+    if state in ['DC', 'PR', 'AS', 'GU', 'MP', 'VI']:
+        state = 'Non-Voting Delegates'
     values = json.loads(requests.get(SHEET_URL % state).text)['values']
 
-    senate_start = senate_start = values.index(['', '', 'Senate Delegation']) + 1
-    house_start = values.index(['', '', 'House Delegation']) + 1
-    senate_end = senate_start + values[senate_start:].index([])
-    house_end = house_start + values[house_start:].index([])
+    try:
+        senate_start = senate_start = values.index(['', '', 'Senate Delegation']) + 1
+        senate_end = senate_start + values[senate_start:].index([])
+    except ValueError:
+        senate_start = 0
+        senate_end = 0
+    try:
+        house_start = values.index(['', '', 'House Delegation']) + 1
+        house_end = house_start + values[house_start:].index([])
+    except ValueError:
+        house_start = 0
+        house_end = 0
 
     results = {}
     for i in chain(range(senate_start, senate_end), range(house_start, house_end)):
