@@ -18,7 +18,7 @@ Critter = namedtuple('Critter',
                       'party', 'state',
                       'phones', 'script'])
 
-def from_scraped(chamber, zip_or_state, critter):
+def from_scraped(chamber, zip_or_state, critter, positions):
     matching = Politician.objects.get_or_none(chamber=chamber, zip_or_state=zip_or_state, district_or_class=critter.disambig)
     if matching is not None:
         extra_phones = map(lambda p: Phone(number = p.number, desc = p.desc),
@@ -31,6 +31,9 @@ def from_scraped(chamber, zip_or_state, critter):
         extra_phones = []
         script = Politician.HAS_NOT_SAID
 
+    if positions.get(critter.website, False):
+        script = Politician.DENOUNCES
+
     return Critter(title = 'Representative' if chamber == Politician.HOUSE else 'Senator',
                    name = critter.name,
                    last_name = critter.last_name,
@@ -41,7 +44,7 @@ def from_scraped(chamber, zip_or_state, critter):
                             + list(extra_phones),
                    script = script)
 
-def from_model(chamber, critter):
+def from_model(chamber, critter, positions):
     get = scrape.get_representatives if chamber == Politician.HOUSE else scrape.get_senators
     matching = next(filter(lambda r: r.disambig == critter.district_or_class,
                            get(critter.zip_or_state)))
@@ -52,6 +55,9 @@ def from_model(chamber, critter):
         script = critter.script
     else:
         script = critter.position
+
+    if positions.get(matching.website, False):
+        script = Politician.DENOUNCES
 
     return Critter(title = 'Representative' if chamber == Politician.HOUSE else 'Senator',
                    name = matching.name,
@@ -88,13 +94,15 @@ def scripts(request):
                                                    'name': request.GET.get('name', ''),
                                                    'error': 'Invalid zip code %s' % zipcode})
 
-    reps = map(lambda r: from_scraped(Politician.HOUSE, zipcode, r),
+    positions = scrape.check_positions(state)
+
+    reps = map(lambda r: from_scraped(Politician.HOUSE, zipcode, r, positions),
                scrape.get_representatives(zipcode))
-    sens = map(lambda s: from_scraped(Politician.SENATE, state, s),
+    sens = map(lambda s: from_scraped(Politician.SENATE, state, s, positions),
                scrape.get_senators(state))
-    greps = map(lambda r: from_model(Politician.HOUSE, r),
+    greps = map(lambda r: from_model(Politician.HOUSE, r, {}),
                 Politician.objects.filter(shown_to_all=True, chamber=Politician.HOUSE))
-    gsens = map(lambda s: from_model(Politician.SENATE, s),
+    gsens = map(lambda s: from_model(Politician.SENATE, s, {}),
                 Politician.objects.filter(shown_to_all=True, chamber=Politician.SENATE))
 
     critters = chain(map(lambda c: c._replace(script = render_script(c, {'name': name, 'place': city})),

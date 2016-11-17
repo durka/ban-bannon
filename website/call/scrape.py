@@ -3,6 +3,9 @@ import requests
 from bs4 import BeautifulSoup
 import lxml
 import re
+import json
+from urllib.parse import urlparse
+from itertools import chain
 from call.models import Politician
 
 STATES = { 'Alabama':        'AL',
@@ -60,7 +63,7 @@ Critter = namedtuple('Critter',
                      ['name', 'last_name',
                       'chamber', 'party', 'state',
                       'disambig', # rep district or senator class
-                      'dc_phone'])
+                      'website', 'dc_phone'])
 
 ################################################################################
     
@@ -140,7 +143,8 @@ def find_representative_for_zip(zip):
             party         = name.find_next_sibling(string=True).strip(),
             state         = STATES[state],
             disambig      = int(district) if district else 0,
-            dc_phone      = None
+            dc_phone      = None,
+            website       = urlparse(name['href']).netloc
         )]
     else:
         def rep(info):
@@ -155,7 +159,8 @@ def find_representative_for_zip(zip):
                 party         = party.strip(),
                 state         = STATES[state],
                 disambig      = int(district),
-                dc_phone      = None
+                dc_phone      = None,
+                website       = urlparse(name['href']).netloc
             )
         
         return list(map(rep, content.find_all(class_='RepInfo')))
@@ -199,7 +204,8 @@ def get_senators(state):
                 party         = PARTY_CHARS.get(party_char, party_char),
                 state         = state,
                 disambig      = class_,
-                dc_phone      = None
+                dc_phone      = None,
+                website       = None
             )
         elif row_index == 1:
             # Address line
@@ -207,8 +213,7 @@ def get_senators(state):
         elif row_index == 2:
             cur_senator = cur_senator._replace(dc_phone = NON_DIGIT_RE.sub('', row.text))
         elif row_index == 3:
-            # Contact
-            pass
+            cur_senator = cur_senator._replace(website = urlparse(row.a['href']).netloc)
         elif row_index == 4:
             # Separator/terminator
             senators.append(cur_senator)
@@ -217,3 +222,27 @@ def get_senators(state):
         row_index = (row_index + 1) % 5
     
     return senators
+
+################################################################################
+
+SHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/111wy-SKScdGOQ8z_ddk3TARvc4-RAXwRL6I6phoLx70/values/%s?key=AIzaSyANbbbSxNMgc5ZCcvdyHEh6yUHwix3qy1g'
+
+def check_positions(state):
+    values = json.loads(requests.get(SHEET_URL % state).text)['values']
+
+    senate_start = senate_start = values.index(['', '', 'Senate Delegation']) + 1
+    house_start = values.index(['', '', 'House Delegation']) + 1
+    senate_end = senate_start + values[senate_start:].index([])
+    house_end = house_start + values[house_start:].index([])
+
+    results = {}
+    for i in chain(range(senate_start, senate_end), range(house_start, house_end)):
+        website = urlparse(values[i][0]).netloc
+        try:
+            position = values[i][5] == 'Y'
+        except IndexError:
+            position = False
+        results[website] = position
+    
+    return results
+
