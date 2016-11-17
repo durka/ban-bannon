@@ -237,16 +237,23 @@ def check_positions(state):
         state = 'Non-Voting Delegates'
     values = json.loads(requests.get(SHEET_URL % state).text)['values']
 
-    try:
-        senate_start = senate_start = values.index(['', '', 'Senate Delegation']) + 1
-        senate_end = senate_start + values[senate_start:].index([])
-    except ValueError:
+    senate_start = 0
+    for i in range(len(values)):
+        if len(values[i]) >= 3 and values[i][2] == 'Senate Delegation':
+            senate_start = i
+            senate_end = senate_start + values[senate_start:].index([])
+            break
+    else:
         senate_start = 0
         senate_end = 0
-    try:
-        house_start = values.index(['', '', 'House Delegation']) + 1
-        house_end = house_start + values[house_start:].index([])
-    except ValueError:
+
+    house_start = 0
+    for i in range(len(values)):
+        if len(values[i]) >= 3 and values[i][2] == 'House Delegation':
+            house_start = i
+            house_end = house_start + values[house_start:].index([])
+            break
+    else:
         house_start = 0
         house_end = 0
 
