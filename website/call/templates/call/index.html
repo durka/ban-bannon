@@ -17,6 +17,11 @@
     <body>
         <div align="center">
             <h1>Where do you live?</h1>
+            {% if error %}
+                <p style="color: orangered">
+                    {{error}}
+                </p>
+            {% endif %}
             <form action="{% url 'call:scripts' %}" method="get">
                 <table>
                     <tr>
@@ -24,7 +29,7 @@
                             <label for="zip">ZIP code:</label>
                         </td>
                         <td>
-                            <input type="text" name="zip" id="zip" />
+                            <input type="text" name="zip" id="zip" value="{{zip}}" />
                         </td>
                     </tr>
                     <tr>
@@ -32,7 +37,7 @@
                             <label for="name">(Optional) Enter your first name:</label>
                         </td>
                         <td>
-                            <input type="text" name="name" id="name" />
+                            <input type="text" name="name" id="name" value="{{name}}" />
                         </td>
                     </tr>
                     <tr>

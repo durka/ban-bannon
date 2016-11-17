@@ -8,8 +8,7 @@ from call import scrape
 from call.models import Politician
 
 def index(request):
-    context = {}
-    return render(request, 'call/index.html', context)
+    return render(request, 'call/index.html', {'zip': '', 'name': ''})
 
 Phone = namedtuple('Phone',
                    ['number', 'desc'])
@@ -82,7 +81,12 @@ def scripts(request):
     name = request.GET.get('name', '$NAME')
     zipcode = request.GET['zip']
 
-    (city, state) = scrape.zip_code_city_state(zipcode)
+    try:
+        (city, state) = scrape.zip_code_city_state(zipcode)
+    except AttributeError:
+        return render(request, 'call/index.html', {'zip': zipcode,
+                                                   'name': request.GET.get('name', ''),
+                                                   'error': 'Invalid zip code %s' % zipcode})
 
     reps = map(lambda r: from_scraped(Politician.HOUSE, zipcode, r),
                scrape.get_representatives(zipcode))
