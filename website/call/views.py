@@ -85,6 +85,8 @@ def render_script(critter, context):
 
 def scripts(request):
     name = request.GET.get('name', '$NAME')
+    if len(name) == 0:
+        name = '$NAME'
     zipcode = request.GET['zip']
 
     try:
