@@ -21,7 +21,7 @@
                     <li>
                         {{critter.title|slice:":3"}}.
                         {{critter.name}}
-                        ({{critter.party|slice:":1"}}-{{critter.state}}){% if phone.desc %} {{phone.desc}}{% endif %}:
+                        ({{critter.party|slice:":1"}}-{{critter.state}}){% if phone.desc %}, {{phone.desc}}{% endif %}:
                         ({{phone.number|slice:":3"}}) {{phone.number|slice:"3:6"}}-{{phone.number|slice:"6:"}}
                     </li>
                 {% endfor %}
