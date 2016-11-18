@@ -16,58 +16,42 @@ Phone = namedtuple('Phone',
 Critter = namedtuple('Critter',
                      ['title', 'name', 'last_name',
                       'party', 'state',
-                      'phones', 'script'])
+                      'phones',
+                      'position', 'script'])
 
-def from_scraped(chamber, zip_or_state, critter, positions):
-    matching = Politician.objects.get_or_none(chamber=chamber, zip_or_state=zip_or_state, district_or_class=critter.disambig)
-    if matching is not None:
-        extra_phones = map(lambda p: Phone(number = p.number, desc = p.desc),
-                           matching.phone_set.all())
-        if matching.script is not None and len(matching.script) > 0:
-            script = matching.script
-        else:
-            script = matching.position
+def merge_scraped_with_model(scraped_critter, model_pol, positions):
+    if model_pol:
+        extra_phones = [Phone(number = p.number, desc = p.desc) for p in model_pol.phone_set.all()]
+        position     = model_pol.position
+        script       = model_pol.script if model_pol.script is not None and len(model_pol.script) > 0 else None
     else:
         extra_phones = []
-        script = Politician.HAS_NOT_SAID
+        position     = None
+        script       = None
 
-    if positions.get(critter.website, False):
-        script = Politician.DENOUNCES
+    if not position:
+        position = Politician.DENOUNCES if positions.get(scraped_critter.website, False) else Politician.HAS_NOT_SAID
 
-    return Critter(title = 'Representative' if chamber == Politician.HOUSE else 'Senator',
-                   name = critter.name,
-                   last_name = critter.last_name,
-                   party = critter.party,
-                   state = critter.state,
-                   phones = [Phone(number = critter.dc_phone,
-                                   desc = None)]
-                            + list(extra_phones),
-                   script = script)
+    return Critter(title     = 'Representative' if scraped_critter.chamber == Politician.HOUSE else 'Senator',
+                   name      = scraped_critter.name,
+                   last_name = scraped_critter.last_name,
+                   party     = scraped_critter.party,
+                   state     = scraped_critter.state,
+                   phones    = [Phone(number = scraped_critter.dc_phone, desc = 'DC office')] + extra_phones,
+                   position  = position,
+                   script    = script)
 
-def from_model(chamber, critter, positions):
-    get = scrape.get_representatives if chamber == Politician.HOUSE else scrape.get_senators
-    matching = next(filter(lambda r: r.disambig == critter.district_or_class,
-                           get(critter.zip_or_state)))
+def from_scraped(zip_or_state, critter, positions):
+    matching = Politician.objects.get_or_none(chamber           = critter.chamber,
+                                              zip_or_state      = zip_or_state,
+                                              district_or_class = critter.disambig)
+    return merge_scraped_with_model(critter, matching, positions)
 
-    extra_phones = map(lambda p: Phone(number = p.number, desc = p.desc),
-                       critter.phone_set.all())
-    if critter.script is not None and len(critter.script) > 0:
-        script = critter.script
-    else:
-        script = critter.position
-
-    if positions.get(matching.website, False):
-        script = Politician.DENOUNCES
-
-    return Critter(title = 'Representative' if chamber == Politician.HOUSE else 'Senator',
-                   name = matching.name,
-                   last_name = matching.last_name,
-                   party = matching.party,
-                   state = matching.state,
-                   phones = [Phone(number = matching.dc_phone,
-                                   desc = None)]
-                            + list(extra_phones),
-                   script = script)
+def from_model(pol, positions):
+    get = scrape.get_representatives if pol.chamber == Politician.HOUSE else scrape.get_senators
+    matching = next(filter(lambda r: r.disambig == pol.district_or_class,
+                           get(pol.zip_or_state)))
+    return merge_scraped_with_model(matching, pol, positions)
 
 def render_script(critter, context):
     if critter.script == Politician.HAS_NOT_SAID:
@@ -98,19 +82,16 @@ def scripts(request):
 
     positions = scrape.check_positions(state)
 
-    reps = map(lambda r: from_scraped(Politician.HOUSE, zipcode, r, positions),
-               scrape.get_representatives(zipcode))
-    sens = map(lambda s: from_scraped(Politician.SENATE, state, s, positions),
-               scrape.get_senators(state))
-    greps = map(lambda r: from_model(Politician.HOUSE, r, {}),
-                Politician.objects.filter(shown_to_all=True, chamber=Politician.HOUSE))
-    gsens = map(lambda s: from_model(Politician.SENATE, s, {}),
-                Politician.objects.filter(shown_to_all=True, chamber=Politician.SENATE))
+    reps  = (from_scraped(zipcode, r, positions) for r in scrape.get_representatives(zipcode))
+    sens  = (from_scraped(state,   s, positions) for s in scrape.get_senators(state))
+    greps = (from_model(r, {}) for r in Politician.objects.filter(shown_to_all=True, chamber=Politician.HOUSE))
+    gsens = (from_model(s, {}) for s in Politician.objects.filter(shown_to_all=True, chamber=Politician.SENATE))
 
-    critters = chain(map(lambda c: c._replace(script = render_script(c, {'name': name, 'place': city})),
-                         chain(reps, sens)),
-                     map(lambda c: c._replace(script = render_script(c, {'name': name, 'place': state})),
-                         chain(greps, gsens)))
+    def render_with(place):
+        return lambda c: c._replace(script = render_script(c, {'name': name, 'place': place}))
+    
+    critters = chain(map(render_with(city),  chain(reps, sens)),
+                     map(render_with(state), chain(greps, gsens)))
 
     return render(request, 'call/scripts.html', {'critters': list(critters)})
 
