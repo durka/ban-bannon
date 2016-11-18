@@ -7,7 +7,7 @@ ssh $PARAMS $HOST rm -rf website
 scp $PARAMS -Cr website $HOST:
 ssh $PARAMS $HOST cp local_settings.py website/website
 
-echo -e "\n\n\n"
+echo "\n\n"
 
 if [ -z $RESTART ]; then
     echo "not restarting server"
