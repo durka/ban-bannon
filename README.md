@@ -23,3 +23,9 @@ Server setup ([source](https://www.linode.com/docs/websites/nginx/use-uwsgi-to-d
 sudo apt-get install nginx-full uwsgi uwsgi-plugin-python3
 ```
 
+To run things locally, copy the `local_settings.py` file into `webserver/webserver`, and then:
+
+```
+cd website
+python3 manage.py runserver
+```
