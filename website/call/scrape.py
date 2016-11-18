@@ -6,6 +6,7 @@ import re
 import json
 from urllib.parse import urlparse
 from itertools import chain
+from memoize import memoize
 from call.models import Politician
 
 STATES = { 'Alabama':        'AL',
@@ -79,6 +80,7 @@ def url_soup(url):
 
 CITY_STATE_RE = re.compile(r'(.+) ([A-Z][A-Z])')
 
+@memoize(timeout=3600)
 def zip_code_city_state(zip):
     html = url_soup('https://tools.usps.com/go/ZipLookupResultsAction!input.action?resultMode=2&postalCode=%s' % zip)
     city_str = html.find(id='result-cities').find(class_='std-address').string
@@ -106,6 +108,7 @@ def add_extra_info(rep, eri):
 
 DIGITS_RE = re.compile(r'[0-9]+')
 
+@memoize(timeout=3600)
 def get_representative_extra_info():
     html = url_soup('http://clerk.house.gov/member_info/mcapdir.aspx')
 
@@ -132,6 +135,7 @@ SINGLE_REPRESENTATIVE_LOCATION_RE = \
 MULTI_REPRESENTATIVES_LOCATION_RE = \
   re.compile(r'([A-Za-z]+) District (\d+)')
 
+@memoize(timeout=3600)
 def find_representative_for_zip(zip):
     html    = url_soup('http://ziplook.house.gov/htbin/findrep?ZIP=%s' % zip)
     content = html.find(id='contentNav')
@@ -170,6 +174,7 @@ def find_representative_for_zip(zip):
         
         return list(map(rep, content.find_all(class_='RepInfo')))
 
+@memoize(timeout=3600)
 def get_representatives(zip):
     info = get_representative_extra_info()
     return [add_extra_info(rep, info[(rep.state, rep.disambig)])
@@ -187,6 +192,7 @@ PARTY_CHARS = { 'D': 'Democrat',
                 'L': 'Libertarian',
                 'G': 'Green' }
 
+@memoize(timeout=3600)
 def get_senators(state):
     html = url_soup('http://www.senate.gov/senators/contact/senators_cfm.cfm?State=%s' % state)
     
@@ -232,6 +238,7 @@ def get_senators(state):
 
 SHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/111wy-SKScdGOQ8z_ddk3TARvc4-RAXwRL6I6phoLx70/values/%s?key=AIzaSyANbbbSxNMgc5ZCcvdyHEh6yUHwix3qy1g'
 
+@memoize(timeout=3600)
 def check_positions(state):
     if state in ['DC', 'PR', 'AS', 'GU', 'MP', 'VI']:
         state = 'Non-Voting Delegates'

@@ -6,15 +6,15 @@ OSX installation:
 
 ```
 brew install python3 libxml2
-pip3 install Django==1.10.3 requests==2.12.0 beautifulsoup4==4.5.1
-pip3 install --global-option=build_ext --global-option=-L/usr/local/opt/libxml2/lib --global-option=build_ext --global-option=-I/usr/local/opt/libxml2/include/libxml2 lxml
+pip3 install Django==1.10.3 requests==2.12.0 beautifulsoup4==4.5.1 django-memoize==2.0.0
+pip3 install --global-option=build_ext --global-option=-L/usr/local/opt/libxml2/lib --global-option=build_ext --global-option=-I/usr/local/opt/libxml2/include/libxml2 lxml==3.6.4
 ```
 
 Linux installation:
 
 ```
 sudo apt-get install python3 python3-pip libxml2-dev libxslt-dev lib32z1-dev
-sudo pip3 install Django==1.10.3 requests==2.12.0 beautifulsoup4==4.5.1 lxml==3.6.4
+sudo pip3 install Django==1.10.3 requests==2.12.0 beautifulsoup4==4.5.1 lxml==3.6.4 django-memoize==2.0.0
 ```
 
 Server setup ([source](https://www.linode.com/docs/websites/nginx/use-uwsgi-to-deploy-Python-apps-with-nginx-on-ubuntu-12-04)):
