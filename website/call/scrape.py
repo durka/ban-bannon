@@ -130,7 +130,7 @@ def get_representative_extra_info():
     return info
 
 SINGLE_REPRESENTATIVE_LOCATION_RE = \
-  re.compile(r'(?:At-Large|(\d+)(?:st|nd|th)) Congressional district of ([A-Za-z ]+)')
+  re.compile(r'(?:At-Large|(\d+)(?:st|nd|rd|th)) Congressional district of ([A-Za-z ]+)')
 
 MULTI_REPRESENTATIVES_LOCATION_RE = \
   re.compile(r'([A-Za-z]+) District (\d+)')
