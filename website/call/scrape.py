@@ -58,12 +58,12 @@ STATES = { 'Alabama':        'AL',
            'West Virginia':  'WV',
            'Wisconsin':      'WI',
            'Wyoming':        'WY',
-           'District':       'DC', # District of Columbia
-           'Puerto':         'PR', # Puerto Rico
-           'American':       'AS', # American Samoa
+           'District of Columbia': 'DC',
+           'Puerto Rico':    'PR',
+           'American Samoa': 'AS',
            'Guam':           'GU',
-           'Northern':       'MP', # Northern Mariana Islands
-           'Virgin':         'VI', # US Virgin Islands
+           'Northern Mariana Islands': 'MP',
+           'Virgin Islands': 'VI',
            }
 
 Critter = namedtuple('Critter',
@@ -127,7 +127,7 @@ def get_representative_extra_info():
     return info
 
 SINGLE_REPRESENTATIVE_LOCATION_RE = \
-  re.compile(r'(?:At-Large|(\d+)(?:st|nd|th)) Congressional district of ([A-Za-z]+)')
+  re.compile(r'(?:At-Large|(\d+)(?:st|nd|th)) Congressional district of ([A-Za-z ]+)')
 
 MULTI_REPRESENTATIVES_LOCATION_RE = \
   re.compile(r'([A-Za-z]+) District (\d+)')
