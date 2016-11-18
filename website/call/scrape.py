@@ -133,7 +133,7 @@ SINGLE_REPRESENTATIVE_LOCATION_RE = \
   re.compile(r'(?:At-Large|(\d+)(?:st|nd|rd|th)) Congressional district of ([A-Za-z ]+)')
 
 MULTI_REPRESENTATIVES_LOCATION_RE = \
-  re.compile(r'([A-Za-z]+) District (\d+)')
+  re.compile(r'([A-Za-z ]+) District (\d+)')
 
 @memoize(timeout=3600)
 def find_representative_for_zip(zip):
@@ -160,6 +160,7 @@ def find_representative_for_zip(zip):
             name = info.a
             party, location_string = name.find_next_siblings(string=True)
             state, district = MULTI_REPRESENTATIVES_LOCATION_RE.search(location_string).groups()
+            state = state.strip()
             
             return Critter(
                 name          = name.string.strip(),
