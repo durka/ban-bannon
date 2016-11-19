@@ -25,3 +25,7 @@ h1.announcement {
   font-style:    italic;
   margin-bottom: 0px;
 }
+
+.condition {
+  font-style: italic;
+}
