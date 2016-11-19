@@ -5,6 +5,7 @@ from django.template import Template, Context
 from django.template.loader import get_template
 from django.shortcuts import render, HttpResponse
 from call import scrape
+from call.constants import STATE_NAMES
 from call.models import Politician
 
 def index(request):
@@ -98,8 +99,8 @@ def scripts(request):
 
     good_critters = []
     bad_critters  = []
-    for critter in chain(map(render_with(city),  chain(reps, sens)),
-                         map(render_with(state), chain(greps, gsens))):
+    for critter in chain(map(render_with(city),               chain(reps, sens)),
+                         map(render_with(STATE_NAMES[state]), chain(greps, gsens))):
         if critter.position == Politician.DENOUNCES:
             good_critters.append(critter)
         else:
