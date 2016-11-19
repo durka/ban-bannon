@@ -23,13 +23,14 @@ class Politician(models.Model):
     chamber = models.CharField(max_length=1,
                                choices=[(HOUSE, 'House of Representatives'),
                                         (SENATE, 'Senate')])
+    leadership_role = models.CharField(max_length=255, blank=True)
     position = models.CharField(max_length=1,
                                 choices=[(HAS_NOT_SAID, 'Has not said'),
                                          (SUPPORTS, 'Supports'),
                                          (DENOUNCES, 'Denounces')],
                                 default=HAS_NOT_SAID)
     shown_to_all = models.BooleanField(default=False)
-    script = models.TextField(default=None, null=True, blank=True)
+    script = models.TextField(default=None, blank=True)
 
     def __str__(self):
         return '%s-%s %s' % (self.zip_or_state, self.district_or_class, self.chamber)

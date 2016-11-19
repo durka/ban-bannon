@@ -14,33 +14,38 @@ Phone = namedtuple('Phone',
                    ['number', 'desc'])
 
 Critter = namedtuple('Critter',
-                     ['title', 'name', 'last_name',
+                     ['title', 'name', 'last_name', 'leadership_role',
                       'party', 'state',
                       'phones',
                       'position', 'script'])
 
 def merge_scraped_with_model(scraped_critter, model_pol, positions):
     if model_pol:
-        extra_phones = [Phone(number = p.number, desc = p.desc) for p in model_pol.phone_set.all()]
-        position     = model_pol.position
-        script       = model_pol.script if model_pol.script is not None and len(model_pol.script) > 0 else None
+        extra_phones    = [Phone(number = p.number, desc = p.desc) for p in model_pol.phone_set.all()]
+        position        = model_pol.position
+        script          = model_pol.script          or None
+        leadership_role = model_pol.leadership_role or None
     else:
-        extra_phones = []
-        position     = None
-        script       = None
+        extra_phones    = []
+        position        = None
+        script          = None
+        leadership_role = None
 
     if not position:
         position = Politician.DENOUNCES if positions.get(scraped_critter.website, False) else Politician.HAS_NOT_SAID
-    print('%s: scraped %s / model %s' % (scraped_critter.name, position, model_pol.position if model_pol else 'X'))
-
-    return Critter(title     = 'Representative' if scraped_critter.chamber == Politician.HOUSE else 'Senator',
-                   name      = scraped_critter.name,
-                   last_name = scraped_critter.last_name,
-                   party     = scraped_critter.party,
-                   state     = scraped_critter.state,
-                   phones    = [Phone(number = scraped_critter.dc_phone, desc = 'DC office')] + extra_phones,
-                   position  = position,
-                   script    = script)
+    
+    title  = 'Representative' if scraped_critter.chamber == Politician.HOUSE else 'Senator'
+    phones = [Phone(number = scraped_critter.dc_phone, desc = 'DC office')] + extra_phones
+    
+    return Critter(title           = title,
+                   name            = scraped_critter.name,
+                   last_name       = scraped_critter.last_name,
+                   leadership_role = leadership_role,
+                   party           = scraped_critter.party,
+                   state           = scraped_critter.state,
+                   phones          = phones,
+                   position        = position,
+                   script          = script)
 
 def from_scraped(zip_or_state, critter, positions):
     matching = Politician.objects.get_or_none(chamber           = critter.chamber,
