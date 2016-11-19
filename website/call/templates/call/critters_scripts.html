@@ -1,0 +1,6 @@
+{% load app_filters %}
+
+{% for critter in critters %}
+    <h1 id="script-for-{{critter.name|slugify}}" class="{{critter.position|position_class}}">Script for {{critter.last_name}}</h1>
+    {{critter.script|safe}}
+{% endfor %}

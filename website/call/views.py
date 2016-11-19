@@ -31,6 +31,7 @@ def merge_scraped_with_model(scraped_critter, model_pol, positions):
 
     if not position:
         position = Politician.DENOUNCES if positions.get(scraped_critter.website, False) else Politician.HAS_NOT_SAID
+    print('%s: scraped %s / model %s' % (scraped_critter.name, position, model_pol.position if model_pol else 'X'))
 
     return Critter(title     = 'Representative' if scraped_critter.chamber == Politician.HOUSE else 'Senator',
                    name      = scraped_critter.name,
@@ -54,15 +55,15 @@ def from_model(pol, positions):
     return merge_scraped_with_model(matching, pol, positions)
 
 def render_script(critter, context):
-    if critter.script == Politician.HAS_NOT_SAID:
-        script = get_template('call/scripts/has_not_said.html')
-    elif critter.script == Politician.SUPPORTS:
-        script = get_template('call/scripts/supports.html')
-    elif critter.script == Politician.DENOUNCES:
-        script = get_template('call/scripts/denounces.html')
-    else:
+    if critter.script:
         script = Template(critter.script)
-
+    elif critter.position == Politician.HAS_NOT_SAID:
+        script = get_template('call/scripts/has_not_said.html')
+    elif critter.position == Politician.SUPPORTS:
+        script = get_template('call/scripts/supports.html')
+    elif critter.position == Politician.DENOUNCES:
+        script = get_template('call/scripts/denounces.html')
+    
     context['critter'] = critter
 
     return script.render(Context(context))
@@ -89,9 +90,17 @@ def scripts(request):
 
     def render_with(place):
         return lambda c: c._replace(script = render_script(c, {'name': name, 'place': place}))
-    
-    critters = chain(map(render_with(city),  chain(reps, sens)),
-                     map(render_with(state), chain(greps, gsens)))
 
-    return render(request, 'call/scripts.html', {'critters': list(critters)})
+    good_critters = []
+    bad_critters  = []
+    for critter in chain(map(render_with(city),  chain(reps, sens)),
+                         map(render_with(state), chain(greps, gsens))):
+        if critter.position == Politician.DENOUNCES:
+            good_critters.append(critter)
+        else:
+            bad_critters.append(critter)
+    
+    return render(request, 'call/scripts.html',
+                  { 'good_critters': good_critters,
+                    'bad_critters':  bad_critters })
 

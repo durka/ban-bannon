@@ -1,0 +1,27 @@
+#phone-numbers + ul .has-not-said {
+  /* OK, default */
+}
+
+#phone-numbers + ul .supports {
+  /* Nothing to do…? */
+}
+
+#phone-numbers + ul .denounces {
+  font-style: italic;
+}
+
+#phone-numbers + ul .announcement {
+  list-style: none;
+  font-style: italic;
+}
+
+#phone-numbers + ul .separator {
+  list-style: none;
+  margin-top: 1ex;
+  border-top: thin solid black;
+}
+
+h1.announcement {
+  font-style:    italic;
+  margin-bottom: 0px;
+}
