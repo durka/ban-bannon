@@ -83,9 +83,13 @@ def render_script(critter, context, campaign):
         elif critter.position == Politician.DENOUNCES:
             script = get_template('call/%s/denounces.html' % campaign)
     else:
-        script = get_template('call/%s/has_not_said.html' % campaign)
+        if critter.script:
+            script = Template(critter.script)
+        else:
+            script = get_template('call/%s/has_not_said.html' % campaign)
     
     context['critter'] = critter
+    context['campaign'] = campaign
 
     return script.render(Context(context))
 
@@ -112,12 +116,11 @@ def scripts(request):
 
     sens  = (from_scraped(state,   s, positions) for s in scrape.get_senators(state))
     gsens = (from_model(s, {}) for s in Politician.objects.filter(shown_to_all=True, chamber=Politician.SENATE))
+    greps = (from_model(r, {}) for r in Politician.objects.filter(shown_to_all=True, chamber=Politician.HOUSE))
     if campaign == 'bannon':
         reps  = (from_scraped(zipcode, r, positions) for r in scrape.get_representatives(zipcode))
-        greps = (from_model(r, {}) for r in Politician.objects.filter(shown_to_all=True, chamber=Politician.HOUSE))
     else:
         reps = []
-        greps = []
 
     def render_with(place):
         return lambda c: c._replace(script = render_script(c, {'name': name, 'place': place}, campaign))
