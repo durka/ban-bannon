@@ -5,6 +5,7 @@ HOST='ubuntu@ec2-52-15-139-29.us-east-2.compute.amazonaws.com'
 
 if [ -z $DB ]; then
     ssh $PARAMS $HOST rm -rf website
+    echo $(git rev-parse HEAD) >website/DEPLOYED
     scp $PARAMS -Cr website $HOST:
     ssh $PARAMS $HOST cp local_settings.py website/website
 else
