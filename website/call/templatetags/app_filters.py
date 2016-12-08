@@ -16,7 +16,7 @@ def position_class(position):
     else:
         return 'unknown-position'
 
-PHONE_TEMPLATE = get_template('call/phone_number.html')
+PHONE_TEMPLATE = get_template('call/phone_numbers.html')
 
 @register.filter
 def critter_phone(critter, phone):

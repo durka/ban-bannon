@@ -7,7 +7,7 @@
         <meta charset="utf-8">
         <meta name="generator" content="pandoc">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-        <title>Call your reps to #StopBannon</title>
+        <title>Call your reps to #Stop{{ campaign|title }}</title>
         <style type="text/css">code{white-space: pre;}</style>
         <link rel="stylesheet" href="{% static "killercup-pandoc.css" %}">
         <link rel="stylesheet" href="{% static "stances.css" %}">
@@ -42,40 +42,68 @@
 
         <h1 id="some-resources">Some resources</h1>
         <ul>
-            <li>
-                <a href="https://www.splcenter.org/stephen-bannon-has-no-business-white-house">“Stephen Bannon has no business in the White House”</a>,
-                by the
-                <a href="https://www.splcenter.org/">Southern Poverty Law Center</a>
-            </li>
-            <li>
-                <a href="http://www.nytimes.com/2016/11/15/us/politics/stephen-bannon-breitbart-words.html">“Stephen Bannon and Breitbart News, in Their Words”</a>,
-                by Daniel Victor and Liam Stack for
-                <a href="http://www.nytimes.com/">The New York Times</a>
-            </li>
-            <li>
-                <a href="https://www.reddit.com/r/NeutralPolitics/comments/5d33ad/who_is_stephen_bannon_and_why_is_he_accused_of/">“Who is Stephen Bannon and why is he accused of racism?”</a>,
-                a thread on
-                <a href="https://www.reddit.com/r/NeutralPolitics">/r/NeutralPolitics</a>
-            </li>
-            <li>
-                <a href="http://www.snopes.com/2016/11/14/steve-bannon-accused-of-having-white-supremacist-views/">“Steve Bannon Accused of Having White Supremacist Views”</a>,
-                by Bethania Palma for
-                <a href="http://www.snopes.com/">Snopes</a>
-            </li>
-            <li>
-                <a href="http://www.dailywire.com/news/8441/i-know-trumps-new-campaign-chairman-steve-bannon-ben-shapiro">“I Know Trump’s New Campaign Chairman, Steve Bannon.  Here’s What You Need To Know.”</a>,
-                by Ben Shapiro (former Breitbart editor-at-large) for
-                <a href="http://www.dailywire.com/">The Daily Wire</a>
-            </li>
-            <li>
-                <a href="http://www.motherjones.com/kevin-drum/2016/11/steve-bannon-racist-lets-find-out">“Is Steve Bannon Racist? Let’s Find Out!”</a>,
-                by Kevin Drum for
-                <a href="http://www.motherjones.com/">Mother Jones</a>
-            </li>
-            <li>
-                <a href="https://docs.google.com/document/d/1VSLq_eUnL3RBZ3fOAS3SW3XStusuUdAipDbW--ZqbVs/edit?usp=sharing">“Opposition to Bannon Is Bipartisan: Republican opposition to Bannon”</a>,
-                a crowdsourced document
-            </li>
+            {% if campaign == 'bannon' %}
+                <li>
+                    <a href="https://www.splcenter.org/stephen-bannon-has-no-business-white-house">“Stephen Bannon has no business in the White House”</a>,
+                    by the
+                    <a href="https://www.splcenter.org/">Southern Poverty Law Center</a>
+                </li>
+                <li>
+                    <a href="http://www.nytimes.com/2016/11/15/us/politics/stephen-bannon-breitbart-words.html">“Stephen Bannon and Breitbart News, in Their Words”</a>,
+                    by Daniel Victor and Liam Stack for
+                    <a href="http://www.nytimes.com/">The New York Times</a>
+                </li>
+                <li>
+                    <a href="https://www.reddit.com/r/NeutralPolitics/comments/5d33ad/who_is_stephen_bannon_and_why_is_he_accused_of/">“Who is Stephen Bannon and why is he accused of racism?”</a>,
+                    a thread on
+                    <a href="https://www.reddit.com/r/NeutralPolitics">/r/NeutralPolitics</a>
+                </li>
+                <li>
+                    <a href="http://www.snopes.com/2016/11/14/steve-bannon-accused-of-having-white-supremacist-views/">“Steve Bannon Accused of Having White Supremacist Views”</a>,
+                    by Bethania Palma for
+                    <a href="http://www.snopes.com/">Snopes</a>
+                </li>
+                <li>
+                    <a href="http://www.dailywire.com/news/8441/i-know-trumps-new-campaign-chairman-steve-bannon-ben-shapiro">“I Know Trump’s New Campaign Chairman, Steve Bannon.  Here’s What You Need To Know.”</a>,
+                    by Ben Shapiro (former Breitbart editor-at-large) for
+                    <a href="http://www.dailywire.com/">The Daily Wire</a>
+                </li>
+                <li>
+                    <a href="http://www.motherjones.com/kevin-drum/2016/11/steve-bannon-racist-lets-find-out">“Is Steve Bannon Racist? Let’s Find Out!”</a>,
+                    by Kevin Drum for
+                    <a href="http://www.motherjones.com/">Mother Jones</a>
+                </li>
+                <li>
+                    <a href="https://docs.google.com/document/d/1VSLq_eUnL3RBZ3fOAS3SW3XStusuUdAipDbW--ZqbVs/edit?usp=sharing">“Opposition to Bannon Is Bipartisan: Republican opposition to Bannon”</a>,
+                    a crowdsourced document
+                </li>
+            {% elif campaign == 'pruitt' %}
+                <li>
+                    <a href="https://theintercept.com/2016/12/07/donald-trumps-epa-team-will-be-run-by-fossil-fuel-industry-advocates/">“Donald Trump’s EPA Team Will Be Run by Fossil-Fuel Industry Advocates”</a>
+                    by Lee Fang and Naomi LaChance for
+                    <a href="https://theintercept.com/">The Intercept</a>
+                </li>
+                <li>
+                    <a href="http://www.nytimes.com/2016/12/07/us/politics/scott-pruitt-epa-trump.html">“Trump Picks Scott Pruitt, Climate Change Denialist, to Lead E.P.A.”</a>
+                    by Coral Davenport and Eric Lipton for
+                    <a href="http://www.nytimes.com/">The New York Times</a>
+                </li>
+                <li>
+                    <a href="http://www.wsj.com/articles/donald-trump-taps-oklahoma-attorney-general-scott-pruitt-to-lead-epa-1481143068">“Donald Trump Taps Oklahoma Attorney General Scott Pruitt to Lead EPA”</a>
+                    by Amy Harder and Peter Nicholas for
+                    <a href="http://www.wsj.com">The Wall Street Journal</a>
+                </li>
+                <li>
+                    <a href="http://www.businessinsider.com/sierra-club-scott-pruitt-epa-arsonist-fighting-fires-2016-12">“One of the oldest environmental groups in the US says Trump's EPA pick is 'like putting an arsonist in charge of fighting fires'”</a>
+                    by Rafi Letzter for
+                    <a href="http://www.businessinsider.org">Business Insider</a> (quoting the <a href="http://sierraclub.org">Sierra Club</a>)
+                </li>
+                <li>
+                    <a href="http://www.audubon.org/news/audubon-deeply-concerned-anti-epa-nominee-scott-pruitt">“Audubon Deeply Concerned by "Anti-EPA" Nominee Scott Pruitt”</a>
+                    by the
+                    <a href="http://www.audubon.org">National Audubon Society</a>
+                </li>
+            {% endif %}
         </ul>
         <h1 id="congressional-contact-information">This didn’t work for you?  Here’s all the congressional contact information!</h1>
         <ul>

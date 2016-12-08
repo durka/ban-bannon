@@ -1,6 +1,7 @@
 from collections import namedtuple
 from enum import Enum
 from itertools import chain
+from django.http import Http404
 from django.template import Template, Context
 from django.template.loader import get_template
 from django.shortcuts import render, HttpResponse
@@ -8,8 +9,18 @@ from call import scrape
 from call.constants import STATE_NAMES
 from call.models import Politician
 
+def get_campaign(request):
+    if 'bannon' in request.get_host():
+        return 'bannon'
+    elif 'pruitt' in request.get_host():
+        return 'pruitt'
+    else:
+        raise Http404("Campaign not found")
+
 def index(request):
-    return render(request, 'call/index.html', {'zip': '', 'name': ''})
+    campaign = get_campaign(request)
+
+    return render(request, 'call/index.html', {'campaign': campaign, 'zip': '', 'name': ''})
 
 Phone = namedtuple('Phone',
                    ['number', 'desc'])
@@ -60,21 +71,27 @@ def from_model(pol, positions):
                            get(pol.zip_or_state)))
     return merge_scraped_with_model(matching, pol, positions)
 
-def render_script(critter, context):
-    if critter.script:
-        script = Template(critter.script)
-    elif critter.position == Politician.HAS_NOT_SAID:
-        script = get_template('call/scripts/has_not_said.html')
-    elif critter.position == Politician.SUPPORTS:
-        script = get_template('call/scripts/supports.html')
-    elif critter.position == Politician.DENOUNCES:
-        script = get_template('call/scripts/denounces.html')
+def render_script(critter, context, campaign):
+    # TODO change DB so multiple campaigns can have custom scripts
+    if campaign == 'bannon':
+        if critter.script:
+            script = Template(critter.script)
+        elif critter.position == Politician.HAS_NOT_SAID:
+            script = get_template('call/%s/has_not_said.html' % campaign)
+        elif critter.position == Politician.SUPPORTS:
+            script = get_template('call/%s/supports.html' % campaign)
+        elif critter.position == Politician.DENOUNCES:
+            script = get_template('call/%s/denounces.html' % campaign)
+    else:
+        script = get_template('call/%s/has_not_said.html' % campaign)
     
     context['critter'] = critter
 
     return script.render(Context(context))
 
 def scripts(request):
+    campaign = get_campaign(request)
+
     name = request.GET.get('name', '$NAME')
     if len(name) == 0:
         name = '$NAME'
@@ -83,11 +100,15 @@ def scripts(request):
     try:
         (city, state) = scrape.zip_code_city_state(zipcode)
     except AttributeError:
-        return render(request, 'call/index.html', {'zip': zipcode,
+        return render(request, 'call/index.html', {'campaign': campaign,
+                                                   'zip': zipcode,
                                                    'name': request.GET.get('name', ''),
                                                    'error': 'Invalid zip code %s' % zipcode})
 
-    positions = scrape.check_positions(state)
+    if campaign == 'bannon':
+        positions = scrape.check_positions(state)
+    else:
+        positions = {}
 
     reps  = (from_scraped(zipcode, r, positions) for r in scrape.get_representatives(zipcode))
     sens  = (from_scraped(state,   s, positions) for s in scrape.get_senators(state))
@@ -95,7 +116,7 @@ def scripts(request):
     gsens = (from_model(s, {}) for s in Politician.objects.filter(shown_to_all=True, chamber=Politician.SENATE))
 
     def render_with(place):
-        return lambda c: c._replace(script = render_script(c, {'name': name, 'place': place}))
+        return lambda c: c._replace(script = render_script(c, {'name': name, 'place': place}, campaign))
 
     good_critters = []
     bad_critters  = []
@@ -107,6 +128,7 @@ def scripts(request):
             bad_critters.append(critter)
     
     return render(request, 'call/scripts.html',
-                  { 'good_critters': good_critters,
+                  { 'campaign':      campaign,
+                    'good_critters': good_critters,
                     'bad_critters':  bad_critters })
 
