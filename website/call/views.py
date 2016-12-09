@@ -1,3 +1,4 @@
+from website import settings
 from collections import namedtuple
 from enum import Enum
 from itertools import chain
@@ -10,12 +11,15 @@ from call.constants import STATE_NAMES
 from call.models import Politician
 
 def get_campaign(request):
-    if 'bannon' in request.get_host():
-        return 'bannon'
-    elif 'pruitt' in request.get_host():
-        return 'pruitt'
-    else:
-        raise Http404("Campaign not found")
+    try:
+        return settings.campaign_override
+    except AttributeError:
+        if 'bannon' in request.get_host():
+            return 'bannon'
+        elif 'pruitt' in request.get_host():
+            return 'pruitt'
+        else:
+            raise Http404("Campaign not found")
 
 def index(request):
     campaign = get_campaign(request)
