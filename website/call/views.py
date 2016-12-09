@@ -119,8 +119,8 @@ def scripts(request):
         positions = {}
 
     sens  = (from_scraped(state,   s, positions) for s in scrape.get_senators(state))
-    gsens = (from_model(s, {}) for s in Politician.objects.filter(shown_to_all=True, chamber=Politician.SENATE))
-    greps = (from_model(r, {}) for r in Politician.objects.filter(shown_to_all=True, chamber=Politician.HOUSE))
+    gsens = (from_model(s, {}) for s in Politician.objects.filter(shown_to_all__name=campaign, chamber=Politician.SENATE))
+    greps = (from_model(r, {}) for r in Politician.objects.filter(shown_to_all__name=campaign, chamber=Politician.HOUSE))
     if campaign == 'bannon':
         reps  = (from_scraped(zipcode, r, positions) for r in scrape.get_representatives(zipcode))
     else:

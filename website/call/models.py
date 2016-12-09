@@ -9,6 +9,12 @@ class GetOrNoneManager(models.Manager):
         except self.model.DoesNotExist:
             return None
 
+class Campaign(models.Model):
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
 class Politician(models.Model):
     objects = GetOrNoneManager()
 
@@ -29,7 +35,7 @@ class Politician(models.Model):
                                          (SUPPORTS, 'Supports'),
                                          (DENOUNCES, 'Denounces')],
                                 default=HAS_NOT_SAID)
-    shown_to_all = models.BooleanField(default=False)
+    shown_to_all = models.ManyToManyField(Campaign, blank=True)
     script = models.TextField(default=None, blank=True)
 
     def __str__(self):
