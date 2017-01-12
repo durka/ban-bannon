@@ -7,7 +7,7 @@
         <meta charset="utf-8">
         <meta name="generator" content="pandoc">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-        <title>Call your reps to #Stop{{ campaign|title }}</title>
+        <title>Call your reps to #{{ campaign.hashtag }}</title>
         <style type="text/css">code{white-space: pre;}</style>
         <link rel="stylesheet" href="{% static "killercup-pandoc.css" %}">
         <link rel="stylesheet" href="{% static "stances.css" %}">
@@ -42,7 +42,7 @@
 
         <h1 id="some-resources">Some resources</h1>
         <ul>
-            {% if campaign == 'bannon' %}
+            {% if campaign.name == 'bannon' %}
                 <li>
                     <a href="https://www.splcenter.org/stephen-bannon-has-no-business-white-house">“Stephen Bannon has no business in the White House”</a>,
                     by the
@@ -77,7 +77,7 @@
                     <a href="https://docs.google.com/document/d/1VSLq_eUnL3RBZ3fOAS3SW3XStusuUdAipDbW--ZqbVs/edit?usp=sharing">“Opposition to Bannon Is Bipartisan: Republican opposition to Bannon”</a>,
                     a crowdsourced document
                 </li>
-            {% elif campaign == 'pruitt' %}
+            {% elif campaign.name == 'pruitt' %}
                 <li>
                     <a href="https://theintercept.com/2016/12/07/donald-trumps-epa-team-will-be-run-by-fossil-fuel-industry-advocates/">“Donald Trump’s EPA Team Will Be Run by Fossil-Fuel Industry Advocates”</a>
                     by Lee Fang and Naomi LaChance for

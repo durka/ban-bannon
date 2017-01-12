@@ -10,7 +10,8 @@ class GetOrNoneManager(models.Manager):
             return None
 
 class Campaign(models.Model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=20, unique=True)
+    hashtag = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name

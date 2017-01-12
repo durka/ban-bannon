@@ -8,18 +8,21 @@ from django.template.loader import get_template
 from django.shortcuts import render, HttpResponse
 from call import scrape
 from call.constants import STATE_NAMES
-from call.models import Politician
+from call.models import Politician, Campaign
 
 def get_campaign(request):
     try:
-        return settings.campaign_override
+        c = settings.campaign_override
     except AttributeError:
         if 'bannon' in request.get_host():
-            return 'bannon'
+            c = 'bannon'
         elif 'pruitt' in request.get_host():
-            return 'pruitt'
+            c = 'pruitt'
+        elif 'aca' in request.get_host():
+            c = 'obamacare'
         else:
             raise Http404("Campaign not found")
+    return Campaign.objects.get(name=c)
 
 def index(request):
     campaign = get_campaign(request)
@@ -77,7 +80,7 @@ def from_model(pol, positions):
 
 def render_script(critter, context, campaign):
     # TODO change DB so multiple campaigns can have custom scripts
-    if campaign == 'bannon':
+    if campaign.name == 'bannon':
         if critter.script:
             script = Template(critter.script)
         elif critter.position == Politician.HAS_NOT_SAID:
@@ -113,15 +116,15 @@ def scripts(request):
                                                    'name': request.GET.get('name', ''),
                                                    'error': 'Invalid zip code %s' % zipcode})
 
-    if campaign == 'bannon':
+    if campaign.name == 'bannon':
         positions = scrape.check_positions(state)
     else:
         positions = {}
 
     sens  = (from_scraped(state,   s, positions) for s in scrape.get_senators(state))
-    gsens = (from_model(s, {}) for s in Politician.objects.filter(shown_to_all__name=campaign, chamber=Politician.SENATE))
-    greps = (from_model(r, {}) for r in Politician.objects.filter(shown_to_all__name=campaign, chamber=Politician.HOUSE))
-    if campaign == 'bannon':
+    gsens = (from_model(s, {}) for s in Politician.objects.filter(shown_to_all=campaign, chamber=Politician.SENATE))
+    greps = (from_model(r, {}) for r in Politician.objects.filter(shown_to_all=campaign, chamber=Politician.HOUSE))
+    if campaign.name in ['bannon', 'obamacare']:
         reps  = (from_scraped(zipcode, r, positions) for r in scrape.get_representatives(zipcode))
     else:
         reps = []
