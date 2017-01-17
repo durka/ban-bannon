@@ -143,6 +143,7 @@ def scripts(request):
     
     return render(request, 'call/scripts.html',
                   { 'campaign':      campaign,
+                    'state':         state,
                     'good_critters': good_critters,
                     'bad_critters':  bad_critters })
 
