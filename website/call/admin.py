@@ -4,4 +4,5 @@ from .models import *
 admin.site.register(Campaign)
 admin.site.register(Politician)
 admin.site.register(Phone)
+admin.site.register(Position)
 

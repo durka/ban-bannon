@@ -8,7 +8,7 @@ from django.template.loader import get_template
 from django.shortcuts import render, HttpResponse
 from call import scrape
 from call.constants import STATE_NAMES
-from call.models import Politician, Campaign
+from call.models import Politician, Campaign, Position
 
 def get_campaign(request):
     try:
@@ -38,12 +38,18 @@ Critter = namedtuple('Critter',
                       'phones',
                       'position', 'script'])
 
-def merge_scraped_with_model(scraped_critter, model_pol, positions):
+def merge_scraped_with_model(scraped_critter, model_pol, positions, campaign):
     if model_pol:
-        extra_phones    = [Phone(number = p.number, desc = p.desc) for p in model_pol.phone_set.all()]
-        position        = model_pol.position
-        script          = model_pol.script          or None
-        leadership_role = model_pol.leadership_role or None
+        try:
+            model_pos = Position.objects.get(politician=model_pol, campaign__name=campaign)
+            script          = model_pos.script          or None
+            position        = model_pos.position
+        except Position.DoesNotExist:
+            script          = None
+            position        = None
+
+        extra_phones        = [Phone(number = p.number, desc = p.desc) for p in model_pol.phone_set.all()]
+        leadership_role     = model_pol.leadership_role or None
     else:
         extra_phones    = []
         position        = None
@@ -51,7 +57,7 @@ def merge_scraped_with_model(scraped_critter, model_pol, positions):
         leadership_role = None
 
     if not position:
-        position = Politician.DENOUNCES if positions.get(scraped_critter.website, False) else Politician.HAS_NOT_SAID
+        position = Position.DENOUNCES if positions.get(scraped_critter.website, False) else Position.HAS_NOT_SAID
     
     title  = 'Representative' if scraped_critter.chamber == Politician.HOUSE else 'Senator'
     phones = [Phone(number = scraped_critter.dc_phone, desc = 'DC office')] + extra_phones
@@ -66,34 +72,27 @@ def merge_scraped_with_model(scraped_critter, model_pol, positions):
                    position        = position,
                    script          = script)
 
-def from_scraped(zip_or_state, critter, positions):
+def from_scraped(zip_or_state, critter, positions, campaign):
     matching = Politician.objects.get_or_none(chamber           = critter.chamber,
                                               zip_or_state      = zip_or_state,
                                               district_or_class = critter.disambig)
-    return merge_scraped_with_model(critter, matching, positions)
+    return merge_scraped_with_model(critter, matching, positions, campaign)
 
-def from_model(pol, positions):
+def from_model(pol, positions, campaign):
     get = scrape.get_representatives if pol.chamber == Politician.HOUSE else scrape.get_senators
     matching = next(filter(lambda r: r.disambig == pol.district_or_class,
                            get(pol.zip_or_state)))
-    return merge_scraped_with_model(matching, pol, positions)
+    return merge_scraped_with_model(matching, pol, positions, campaign)
 
 def render_script(critter, context, campaign):
-    # TODO change DB so multiple campaigns can have custom scripts
-    if campaign.name == 'bannon':
-        if critter.script:
-            script = Template(critter.script)
-        elif critter.position == Politician.HAS_NOT_SAID:
-            script = get_template('call/%s/has_not_said.html' % campaign)
-        elif critter.position == Politician.SUPPORTS:
-            script = get_template('call/%s/supports.html' % campaign)
-        elif critter.position == Politician.DENOUNCES:
-            script = get_template('call/%s/denounces.html' % campaign)
-    else:
-        if critter.script:
-            script = Template(critter.script)
-        else:
-            script = get_template('call/%s/has_not_said.html' % campaign)
+    if critter.script:
+        script = Template(critter.script)
+    elif critter.position == Position.HAS_NOT_SAID:
+        script = get_template('call/%s/has_not_said.html' % campaign)
+    elif critter.position == Position.SUPPORTS:
+        script = get_template('call/%s/supports.html' % campaign)
+    elif critter.position == Position.DENOUNCES:
+        script = get_template('call/%s/denounces.html' % campaign)
     
     context['critter'] = critter
     context['campaign'] = campaign
@@ -116,16 +115,19 @@ def scripts(request):
                                                    'name': request.GET.get('name', ''),
                                                    'error': 'Invalid zip code %s' % zipcode})
 
-    if campaign.name == 'bannon':
-        positions = scrape.check_positions(state)
-    else:
+    if campaign.checker is None or campaign.checker == '':
         positions = {}
+    else:
+        positions = getattr(scrape, campaign.checker)(state)
 
-    sens  = (from_scraped(state,   s, positions) for s in scrape.get_senators(state))
-    gsens = (from_model(s, {}) for s in Politician.objects.filter(shown_to_all=campaign, chamber=Politician.SENATE))
-    greps = (from_model(r, {}) for r in Politician.objects.filter(shown_to_all=campaign, chamber=Politician.HOUSE))
-    if campaign.name in ['bannon', 'obamacare']:
-        reps  = (from_scraped(zipcode, r, positions) for r in scrape.get_representatives(zipcode))
+    if campaign.include_senators:
+        sens  = (from_scraped(state,   s, positions, campaign) for s in scrape.get_senators(state))
+    else:
+        sens = []
+    gsens = (from_model(s, {}, campaign) for s in Politician.objects.filter(shown_to_all=campaign, chamber=Politician.SENATE))
+    greps = (from_model(r, {}, campaign) for r in Politician.objects.filter(shown_to_all=campaign, chamber=Politician.HOUSE))
+    if campaign.include_representatives:
+        reps  = (from_scraped(zipcode, r, positions, campaign) for r in scrape.get_representatives(zipcode))
     else:
         reps = []
 
@@ -136,7 +138,7 @@ def scripts(request):
     bad_critters  = []
     for critter in chain(map(render_with(city),               chain(reps, sens)),
                          map(render_with(STATE_NAMES[state]), chain(greps, gsens))):
-        if critter.position == Politician.DENOUNCES:
+        if critter.position == Position.DENOUNCES:
             good_critters.append(critter)
         else:
             bad_critters.append(critter)

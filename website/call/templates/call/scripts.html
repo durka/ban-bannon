@@ -21,11 +21,11 @@
             {% include "call/phone_numbers.html" with critters=bad_critters %}
             {% if bad_critters and good_critters %}
                 <li class="announcement separator">
-                    These representatives have already denounced Steve Bannon:
+                    These representatives have already {{ campaign.action }}:
                 </li>
             {% elif good_critters %}
                 <li class="announcement">
-                    All your representatives have already denounced Steve Bannon!
+                    All your representatives have already {{ campaign.action }}!
                 </li>
             {% endif %}
             {% include "call/phone_numbers.html" with critters=good_critters %}

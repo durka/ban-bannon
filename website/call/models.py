@@ -12,16 +12,34 @@ class GetOrNoneManager(models.Manager):
 class Campaign(models.Model):
     name = models.CharField(max_length=20, unique=True)
     hashtag = models.CharField(max_length=100)
+    action = models.TextField(default=None, blank=True, null=True)
+    checker = models.CharField(max_length=100, default=None, blank=True, null=True)
+    include_senators = models.BooleanField(default=True)
+    include_representatives = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
 
-class Politician(models.Model):
-    objects = GetOrNoneManager()
-
+class Position(models.Model):
     HAS_NOT_SAID = 'N'
     SUPPORTS = 'S'
     DENOUNCES = 'D'
+
+    politician = models.ForeignKey('Politician')
+    campaign = models.ForeignKey('Campaign')
+    position = models.CharField(max_length=1,
+                                choices=[(HAS_NOT_SAID, 'Has not said'),
+                                         (SUPPORTS,     'Supports'    ),
+                                         (DENOUNCES,    'Denounces'   )],
+                                default=HAS_NOT_SAID)
+    script = models.TextField(default=None, blank=True)
+
+    def __str__(self):
+        return '%s: %s %s' % (self.politician, self.position, self.campaign)
+
+class Politician(models.Model):
+    objects = GetOrNoneManager()
+
     HOUSE = 'H'
     SENATE = 'S'
 
@@ -31,13 +49,7 @@ class Politician(models.Model):
                                choices=[(HOUSE, 'House of Representatives'),
                                         (SENATE, 'Senate')])
     leadership_role = models.CharField(max_length=255, blank=True)
-    position = models.CharField(max_length=1,
-                                choices=[(HAS_NOT_SAID, 'Has not said'),
-                                         (SUPPORTS, 'Supports'),
-                                         (DENOUNCES, 'Denounces')],
-                                default=HAS_NOT_SAID)
     shown_to_all = models.ManyToManyField(Campaign, blank=True)
-    script = models.TextField(default=None, blank=True)
 
     def __str__(self):
         return '%s-%s %s' % (self.zip_or_state, self.district_or_class, self.chamber)

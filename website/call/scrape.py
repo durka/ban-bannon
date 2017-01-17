@@ -180,13 +180,13 @@ def get_senators(state):
 
 ################################################################################
 
-SHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/111wy-SKScdGOQ8z_ddk3TARvc4-RAXwRL6I6phoLx70/values/%s?key=AIzaSyANbbbSxNMgc5ZCcvdyHEh6yUHwix3qy1g'
+BANNON_SHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/111wy-SKScdGOQ8z_ddk3TARvc4-RAXwRL6I6phoLx70/values/%s?key=AIzaSyANbbbSxNMgc5ZCcvdyHEh6yUHwix3qy1g'
 
 @memoize(timeout=3600)
-def check_positions(state):
+def check_bannon_positions(state):
     if state in ['DC', 'PR', 'AS', 'GU', 'MP', 'VI']:
         state = 'Non-Voting Delegates'
-    values = json.loads(requests.get(SHEET_URL % state).text)['values']
+    values = json.loads(requests.get(BANNON_SHEET_URL % state).text)['values']
 
     senate_start = 0
     for i in range(len(values)):
