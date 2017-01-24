@@ -136,6 +136,10 @@ pre {
   word-wrap: break-word;
 }
 
+code {
+  white-space: pre;
+}
+
 b, strong {
   font-weight: bold;
 }
