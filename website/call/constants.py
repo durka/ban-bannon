@@ -56,3 +56,6 @@ STATES = { 'Alabama':                  'AL',
            'Virgin Islands':           'VI' }
 
 STATE_NAMES = { abbrev: name for name, abbrev in STATES.items() }
+
+THE_STATES = ['District of Columbia', 'Northern Mariana Islands', 'Virgin Islands']
+

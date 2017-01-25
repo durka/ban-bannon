@@ -7,7 +7,7 @@ from django.template import Template, Context
 from django.template.loader import get_template
 from django.shortcuts import render, HttpResponse
 from call import scrape
-from call.constants import STATE_NAMES
+from call.constants import STATE_NAMES, THE_STATES
 from call.models import Politician, Campaign, Position
 
 def get_campaign(request):
@@ -134,10 +134,14 @@ def scripts(request):
     def render_with(place):
         return lambda c: c._replace(script = render_script(c, {'name': name, 'place': place}, campaign))
 
+    state_name = STATE_NAMES[state]
+    if state_name in THE_STATES:
+        state_name = 'the %s' % state_name
+
     good_critters = []
     bad_critters  = []
-    for critter in chain(map(render_with(city),               chain(reps, sens)),
-                         map(render_with(STATE_NAMES[state]), chain(greps, gsens))):
+    for critter in chain(map(render_with(city),       chain(reps, sens)),
+                         map(render_with(state_name), chain(greps, gsens))):
         if critter.position == Position.DENOUNCES:
             good_critters.append(critter)
         else:
