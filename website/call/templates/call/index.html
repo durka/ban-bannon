@@ -1,18 +1,29 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Call your reps to #{{ campaign.hashtag }}</title>
+        {% if campaign %}
+            <title>Call your reps to #{{ campaign.hashtag }}</title>
+        {% else %}
+            <title>Call your reps to #Resist</title>
+        {% endif %}
         {% include "call/header.html" %}
     </head>
     <body>
         <div align="center">
-            <h1>Where do you live?</h1>
-            {% if error %}
-                <p style="color: orangered">
-                    {{error}}
-                </p>
-            {% endif %}
             <form action="{% url 'call:scripts' %}" method="get">
+                <h2>What do you care about?</h2>
+                <select name="campaign">
+                    <option value="">Choose one</option>
+                    {% for c in campaigns %}
+                        <option
+                            {% if c == campaign %}selected{% endif %}
+                            value="{{ c.name }}"
+                            >
+                            #{{ c.hashtag }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <h2>Where do you live?</h2>
                 <table>
                     <tr>
                         <td>
@@ -37,6 +48,11 @@
                     </tr>
                 </table>
             </form>
+            {% if error %}
+                <p style="color: orangered">
+                    {{error}}
+                </p>
+            {% endif %}
         </div>
     </body>
 </html>

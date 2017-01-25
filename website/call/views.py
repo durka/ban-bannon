@@ -12,22 +12,36 @@ from call.models import Politician, Campaign, Position
 
 def get_campaign(request):
     try:
-        c = settings.campaign_override
+        if len(request.GET.get('campaign', default='')) > 0:
+            c = request.GET['campaign']
+        else:
+            c = settings.campaign_override
     except AttributeError:
-        if 'bannon' in request.get_host():
+        if len(request.GET.get('campaign', default='')) > 0:
+            c = request.GET['campaign']
+        elif 'bannon' in request.get_host():
             c = 'bannon'
         elif 'pruitt' in request.get_host():
             c = 'pruitt'
         elif 'aca' in request.get_host():
             c = 'obamacare'
         else:
-            raise Http404("Campaign not found")
-    return Campaign.objects.get(name=c)
+            c = None
+    if c is None:
+        return None
+    else:
+        return Campaign.objects.get(name=c)
 
 def index(request):
-    campaign = get_campaign(request)
+    return render_index(request, {})
 
-    return render(request, 'call/index.html', {'campaign': campaign, 'zip': '', 'name': ''})
+def render_index(request, extra_values):
+    values = {'campaign':  get_campaign(request),
+              'campaigns': Campaign.objects.all(),
+              'zip':       '',
+              'name':      '' }
+    values.update(extra_values)
+    return render(request, 'call/index.html', values)
 
 Phone = namedtuple('Phone',
                    ['number', 'desc'])
@@ -101,6 +115,12 @@ def render_script(critter, context, campaign):
 
 def scripts(request):
     campaign = get_campaign(request)
+    if campaign is None:
+        return render_index(request, {
+            'zip': request.GET.get('zip', ''),
+            'name': request.GET.get('name', ''),
+            'error': 'You have to choose an issue'
+            })
 
     name = request.GET.get('name', '$NAME')
     if len(name) == 0:
@@ -110,10 +130,11 @@ def scripts(request):
     try:
         (city, state) = scrape.zip_code_city_state(zipcode)
     except AttributeError:
-        return render(request, 'call/index.html', {'campaign': campaign,
-                                                   'zip': zipcode,
-                                                   'name': request.GET.get('name', ''),
-                                                   'error': 'Invalid zip code %s' % zipcode})
+        return render_index(request, {
+                'zip': zipcode,
+                'name': request.GET.get('name', ''),
+                'error': 'Invalid zip code %s' % zipcode
+                })
 
     if campaign.checker is None or campaign.checker == '':
         positions = {}
