@@ -12,7 +12,7 @@
         <div align="center">
             <form action="{% url 'call:scripts' %}" method="get">
                 <h2>What do you care about?</h2>
-                <select name="campaign">
+                <select class="big" name="campaign">
                     <option value="">Choose one</option>
                     {% for c in campaigns %}
                         <option
@@ -35,18 +35,14 @@
                     </tr>
                     <tr>
                         <td>
-                            <label for="name">(Optional) Enter your first name:</label>
+                            <label for="name">(Optional) First name:</label>
                         </td>
                         <td>
                             <input type="text" name="name" id="name" value="{{name}}" />
                         </td>
                     </tr>
-                    <tr>
-                        <td colspan="2">
-                            <input type="submit" value="Find my reps!" />
-                        </td>
-                    </tr>
                 </table>
+                <input class="big" type="submit" value="Find my reps!" />
             </form>
             {% if error %}
                 <p style="color: orangered">
