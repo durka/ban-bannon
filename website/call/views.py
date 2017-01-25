@@ -14,7 +14,7 @@ def get_campaign(request):
     c = request.GET.get('campaign')
     if c is None and settings.CAMPAIGN_OVERRIDE is not None:
         c = settings.CAMPAIGN_OVERRIDE
-    if c == '':
+    if c is None or c == '':
         if 'bannon' in request.get_host():
             c = 'bannon'
         elif 'pruitt' in request.get_host():
