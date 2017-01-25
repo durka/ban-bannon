@@ -11,26 +11,19 @@ from call.constants import STATE_NAMES, THE_STATES
 from call.models import Politician, Campaign, Position
 
 def get_campaign(request):
-    try:
-        if len(request.GET.get('campaign', default='')) > 0:
-            c = request.GET['campaign']
-        else:
-            c = settings.campaign_override
-    except AttributeError:
-        if len(request.GET.get('campaign', default='')) > 0:
-            c = request.GET['campaign']
-        elif 'bannon' in request.get_host():
+    c = request.GET.get('campaign')
+    if c is None and settings.CAMPAIGN_OVERRIDE is not None:
+        c = settings.CAMPAIGN_OVERRIDE
+    if c == '':
+        if 'bannon' in request.get_host():
             c = 'bannon'
         elif 'pruitt' in request.get_host():
             c = 'pruitt'
         elif 'aca' in request.get_host():
             c = 'obamacare'
         else:
-            c = None
-    if c is None:
-        return None
-    else:
-        return Campaign.objects.get(name=c)
+            return None
+    return Campaign.objects.get(name=c)
 
 def index(request):
     return render_index(request, {})
