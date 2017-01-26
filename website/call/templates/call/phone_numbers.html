@@ -1,11 +1,12 @@
 {% load app_filters %}
+{% load humanize %}
 
 {% for critter in critters %}
     {% for phone in critter.phones %}
         <li class="{{critter.position|position_class}}">
           {{critter.title|slice:":3"}}.
           {{critter.name}}{% if critter.leadership_role %}, {{critter.leadership_role}}{% endif %}
-          ({{critter.party|slice:":1"}}-{{critter.state}}){% if phone.desc %}, {{phone.desc}}{% endif %}:
+          ({{critter.party|slice:":1"}}-{{critter.state}}{% if critter.chamber == 'H' %} {{ critter.disambig|ordinal }}{% endif %}){% if phone.desc %}, {{phone.desc}}{% endif %}:
           ({{phone.number|slice:":3"}}) {{phone.number|slice:"3:6"}}-{{phone.number|slice:"6:"}}
         </li>
     {% endfor %}
