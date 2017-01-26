@@ -41,7 +41,7 @@ Phone = namedtuple('Phone',
 
 Critter = namedtuple('Critter',
                      ['title', 'name', 'last_name', 'leadership_role',
-                      'party', 'state',
+                      'party', 'state', 'chamber', 'disambig',
                       'phones',
                       'position', 'script'])
 
@@ -57,11 +57,13 @@ def merge_scraped_with_model(scraped_critter, model_pol, positions, campaign):
 
         extra_phones        = [Phone(number = p.number, desc = p.desc) for p in model_pol.phone_set.all()]
         leadership_role     = model_pol.leadership_role or None
+        disambig            = model_pol.district_or_class
     else:
         extra_phones    = []
         position        = None
         script          = None
         leadership_role = None
+        disambig        = scraped_critter.disambig
 
     if not position:
         position = Position.DENOUNCES if positions.get(scraped_critter.website, False) else Position.HAS_NOT_SAID
@@ -75,6 +77,8 @@ def merge_scraped_with_model(scraped_critter, model_pol, positions, campaign):
                    leadership_role = leadership_role,
                    party           = scraped_critter.party,
                    state           = scraped_critter.state,
+                   chamber         = scraped_critter.chamber,
+                   disambig        = disambig,
                    phones          = phones,
                    position        = position,
                    script          = script)
