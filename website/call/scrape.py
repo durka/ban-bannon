@@ -220,9 +220,12 @@ def check_bannon_positions(state):
     
     return results
 
-#memoize(timeout=3600) TODO
 def check_immigration_eo(state):
-    values = json.loads(requests.get(EO_SHEET_URL % 'Senators').text)['values']
+    @memoize(timeout=3600)
+    def load_sheet():
+        return json.loads(requests.get(EO_SHEET_URL % 'Senators').text)['values']
+
+    values = load_sheet()
     results = {}
     for row in range(len(values)):
         r_state = values[row][4]
