@@ -219,3 +219,7 @@ def check_bannon_positions(state):
     
     return results
 
+#memoize(timeout=3600) TODO
+def check_immigration_eo(state):
+    return {}
+
