@@ -14,7 +14,7 @@
             {% include "call/phone_numbers.html" with critters=bad_critters %}
             {% if bad_critters and good_critters %}
                 <li class="announcement separator">
-                    These representatives have already {{ campaign.action|safe }}
+                    These legislators have already {{ campaign.action|safe }}
                 </li>
             {% elif good_critters %}
                 <li class="announcement">
