@@ -181,6 +181,7 @@ def get_senators(state):
 ################################################################################
 
 BANNON_SHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/111wy-SKScdGOQ8z_ddk3TARvc4-RAXwRL6I6phoLx70/values/%s?key=AIzaSyANbbbSxNMgc5ZCcvdyHEh6yUHwix3qy1g'
+EO_SHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1hSGjyWJZIQJpGz4V2ftX_qioCgBtL59oJkkhx146nFE/values/%s?key=AIzaSyANbbbSxNMgc5ZCcvdyHEh6yUHwix3qy1g'
 
 @memoize(timeout=3600)
 def check_bannon_positions(state):
@@ -221,5 +222,14 @@ def check_bannon_positions(state):
 
 #memoize(timeout=3600) TODO
 def check_immigration_eo(state):
-    return {}
+    values = json.loads(requests.get(EO_SHEET_URL % 'Senators').text)['values']
+    results = {}
+    for row in range(len(values)):
+        r_state = values[row][4]
+        r_pos = values[row][5]
+        r_phone = values[row][10]
+        if r_state == state:
+            r_phone = r_phone.replace('-','')
+            results[r_phone] = 'Silent' not in r_pos
+    return results
 

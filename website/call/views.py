@@ -64,12 +64,21 @@ def merge_scraped_with_model(scraped_critter, model_pol, positions, campaign):
         position        = None
         script          = None
         leadership_role = None
-
-    if not position:
-        position = Position.DENOUNCES if positions.get(scraped_critter.website, False) else Position.HAS_NOT_SAID
     
     title  = 'Representative' if scraped_critter.chamber == Politician.HOUSE else 'Senator'
     phones = [Phone(number = scraped_critter.dc_phone, desc = 'DC office')] + extra_phones
+
+    if not position:
+        position = Position.HAS_NOT_SAID
+        try:
+            if positions[scraped_critter.website]:
+                position = Position.DENOUNCES
+        except KeyError:
+            try:
+                if positions[scraped_critter.dc_phone]:
+                    position = Position.DENOUNCES
+            except KeyError:
+                pass
     
     return Critter(title           = title,
                    name            = scraped_critter.name,
