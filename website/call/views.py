@@ -21,6 +21,8 @@ def get_campaign(request):
             c = 'pruitt'
         elif 'aca' in request.get_host():
             c = 'obamacare'
+        elif 'neveragain' in request.get_host():
+            c = 'neveragain'
         else:
             return None
     return Campaign.objects.get(name=c)
