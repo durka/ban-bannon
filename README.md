@@ -14,7 +14,8 @@ Linux installation:
 
 ```
 sudo apt-get install python3 python3-pip libxml2-dev libxslt-dev lib32z1-dev
-sudo pip3 install Django==1.10.3 requests==2.12.0 beautifulsoup4==4.5.1 lxml==3.6.4 django-memoize==2.0.0
+source venv/bin/activate
+pip3 install -r requirements.txt
 ```
 
 Server setup ([source](https://www.linode.com/docs/websites/nginx/use-uwsgi-to-deploy-Python-apps-with-nginx-on-ubuntu-12-04)):
@@ -23,7 +24,7 @@ Server setup ([source](https://www.linode.com/docs/websites/nginx/use-uwsgi-to-d
 sudo apt-get install nginx-full uwsgi uwsgi-plugin-python3
 ```
 
-To run things locally, copy the `local_settings.py` file into `webserver/webserver`, and then:
+To run things locally, copy the `local_settings.py` file into `website/website`, and then:
 
 ```
 cd website
