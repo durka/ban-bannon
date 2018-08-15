@@ -21,13 +21,11 @@ Critter = namedtuple('Critter',
 def url_soup(url):
     return BeautifulSoup(requests.get(url, headers={'User-Agent': 'Not Mozilla'}).text, 'lxml')
 
-CITY_STATE_RE = re.compile(r'(.+) ([A-Z][A-Z])')
-
 @memoize(timeout=3600)
 def zip_code_city_state(zip):
-    html = url_soup('https://tools.usps.com/go/ZipLookupResultsAction!input.action?resultMode=2&postalCode=%s' % zip)
-    city_str = html.find(id='result-cities').find(class_='std-address').string
-    city, state = CITY_STATE_RE.fullmatch(city_str).groups()
+    data = json.loads(requests.post('https://tools.usps.com/tools/app/ziplookup/cityByZip', data={'zip': zip}, headers={'User-Agent': 'Not Mozilla'}).text)
+    city = data['defaultCity']
+    state = data['defaultState']
     return (city.title(), state)
 
 ################################################################################
