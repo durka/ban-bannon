@@ -78,8 +78,8 @@ MULTI_REPRESENTATIVES_LOCATION_RE = \
 
 @memoize(timeout=3600)
 def find_representative_for_zip(zip):
-    html    = url_soup('http://ziplook.house.gov/htbin/findrep?ZIP=%s' % zip)
-    content = html.find(id='contentNav')
+    html    = url_soup('http://ziplook.house.gov/htbin/findrep_house?ZIP=%s' % zip)
+    content = html.find(id='main-content-section')
     one_rep = content.find(id='RepInfo')
     if one_rep:
         name = one_rep.a
@@ -136,18 +136,18 @@ PARTY_CHARS = { 'D': 'Democrat',
 
 @memoize(timeout=3600)
 def get_senators(state):
-    html = url_soup('http://www.senate.gov/senators/contact/senators_cfm.cfm?State=%s' % state)
-    
+    html = url_soup('https://www.senate.gov/general/contact_information/senators_cfm.cfm?State=%s' % state)
+
     senators    = []
     cur_senator = None
     row_index   = 0 # The rows in the table go person, address, phone number, URL, and terminator line
-    for row in html.find_all('table')[1].find_all('tr'):
+    content = html.find(name='div', width='100%')
+    for row in content.find_all(name='div', class_=['contenttext', 'contentext']):
         if row_index == 0:
-            person, class_str = row.find_all('td')
+            person            = row
             name_link         = person.a
             name, last_name   = parse_comma_name(name_link.text.strip())
             party_char, state = SENATOR_AFFILIATION_RE.search(name_link.find_next_sibling(string=True)).groups()
-            class_            = len(SENATOR_CLASS_RE.search(class_str.text).group(1))
             
             
             cur_senator = Critter(
@@ -156,23 +156,28 @@ def get_senators(state):
                 chamber       = Politician.SENATE,
                 party         = PARTY_CHARS.get(party_char, party_char),
                 state         = state,
-                disambig      = class_,
+                disambig      = None,
                 dc_phone      = None,
                 website       = None
             )
         elif row_index == 1:
+            # Class line
+            cur_senator = cur_senator._replace(disambig = len(SENATOR_CLASS_RE.search(row.text).group(1)))
+        elif row_index == 2:
             # Address line
             pass
-        elif row_index == 2:
-            cur_senator = cur_senator._replace(dc_phone = NON_DIGIT_RE.sub('', row.text))
         elif row_index == 3:
-            cur_senator = cur_senator._replace(website = urlparse(row.a['href']).netloc)
+            # Phone line
+            cur_senator = cur_senator._replace(dc_phone = NON_DIGIT_RE.sub('', row.text))
         elif row_index == 4:
-            # Separator/terminator
+            # Contact website line
+            cur_senator = cur_senator._replace(website = urlparse(row.a['href']).netloc)
+        
+        row_index = row_index + 1
+        if row_index == 5:
             senators.append(cur_senator)
             cur_senator = None
-        
-        row_index = (row_index + 1) % 5
+            row_index = 0
     
     return senators
 
